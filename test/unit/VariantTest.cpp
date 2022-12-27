@@ -51,30 +51,30 @@ TEST_CASE("testIsDirtyTrue")
 {
     PdfMemDocument doc;
 
-    auto objBool = doc.GetObjects().CreateObject(true);
-    auto objNum = doc.GetObjects().CreateObject(static_cast<int64_t>(1));
-    auto objReal = doc.GetObjects().CreateObject(1.0);
-    auto objStr = doc.GetObjects().CreateObject(PdfString("Any"));
-    auto objName = doc.GetObjects().CreateObject(PdfName("Name"));
-    auto objRef = doc.GetObjects().CreateObject(PdfReference(0, 0));
-    auto objArray = doc.GetObjects().CreateArrayObject();
-    auto objDict = doc.GetObjects().CreateDictionaryObject();
-    auto objStream = doc.GetObjects().CreateDictionaryObject();
-    objStream->GetOrCreateStream().SetData("Test"sv);
-    auto objVariant = doc.GetObjects().CreateObject(PdfVariant(false));
+    auto& objBool = doc.GetObjects().CreateObject(true);
+    auto& objNum = doc.GetObjects().CreateObject(static_cast<int64_t>(1));
+    auto& objReal = doc.GetObjects().CreateObject(1.0);
+    auto& objStr = doc.GetObjects().CreateObject(PdfString("Any"));
+    auto& objName = doc.GetObjects().CreateObject(PdfName("Name"));
+    auto& objRef = doc.GetObjects().CreateObject(PdfReference(0, 0));
+    auto& objArray = doc.GetObjects().CreateArrayObject();
+    auto& objDict = doc.GetObjects().CreateDictionaryObject();
+    auto& objStream = doc.GetObjects().CreateDictionaryObject();
+    objStream.GetOrCreateStream().SetData("Test"sv);
+    auto& objVariant = doc.GetObjects().CreateObject(PdfVariant(false));
 
     // IsDirty should be true after construction
-    TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, true);
+    TestObjectsDirty(objBool, objNum, objReal, objStr, objRef, objArray, objDict, objStream, objVariant, true);
 
-    (void)objBool->GetBool();
-    (void)objNum->GetNumber();
-    (void)objReal->GetReal();
-    (void)objStr->GetString();
-    (void)objName->GetName();
-    (void)objRef->GetReference();
-    (void)objArray->GetArray();
-    (void)objDict->GetDictionary();
-    (void)objVariant->GetBool();
+    (void)objBool.GetBool();
+    (void)objNum.GetNumber();
+    (void)objReal.GetReal();
+    (void)objStr.GetString();
+    (void)objName.GetName();
+    (void)objRef.GetReference();
+    (void)objArray.GetArray();
+    (void)objDict.GetDictionary();
+    (void)objVariant.GetBool();
 
     string temp;
     StringStreamDevice out(temp);
@@ -82,42 +82,42 @@ TEST_CASE("testIsDirtyTrue")
     doc.Save(out, PdfSaveOptions::NoCollectGarbage);
 
     // IsDirty should be false after saving
-    TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, false);
+    TestObjectsDirty(objBool, objNum, objReal, objStr, objRef, objArray, objDict, objStream, objVariant, false);
 
-    (void)objBool->GetBool();
-    (void)objNum->GetNumber();
-    (void)objReal->GetReal();
-    (void)objStr->GetString();
-    (void)objName->GetName();
-    (void)objRef->GetReference();
-    (void)objArray->GetArray();
-    (void)objDict->GetDictionary();
-    (void)objVariant->GetBool();
-    (void)objStream->MustGetStream().GetCopy();
+    (void)objBool.GetBool();
+    (void)objNum.GetNumber();
+    (void)objReal.GetReal();
+    (void)objStr.GetString();
+    (void)objName.GetName();
+    (void)objRef.GetReference();
+    (void)objArray.GetArray();
+    (void)objDict.GetDictionary();
+    (void)objVariant.GetBool();
+    (void)objStream.MustGetStream().GetCopy();
 
     // IsDirty should be false after calling getter
-    TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, false);
+    TestObjectsDirty(objBool, objNum, objReal, objStr, objRef, objArray, objDict, objStream, objVariant, false);
 
-    objBool->SetBool(false);
-    objNum->SetNumber(static_cast<int64_t>(2));
-    objReal->SetReal(2.0);
-    objStr->SetString("Other");
-    objName->SetName("Name2");
-    objRef->SetReference(PdfReference(2, 0));
-    objArray->GetArray().Add(*objBool);
-    objDict->GetDictionary().AddKey(objName->GetName(), *objStr);
-    objStream->MustGetStream().SetData("Test2"sv);
-    *objVariant = *objNum;
+    objBool.SetBool(false);
+    objNum.SetNumber(static_cast<int64_t>(2));
+    objReal.SetReal(2.0);
+    objStr.SetString("Other");
+    objName.SetName("Name2");
+    objRef.SetReference(PdfReference(2, 0));
+    objArray.GetArray().Add(objBool);
+    objDict.GetDictionary().AddKey(objName.GetName(), objStr);
+    objStream.MustGetStream().SetData("Test2"sv);
+    objVariant = objNum;
 
     // IsDirty should be true after calling setter
-    TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, true);
+    TestObjectsDirty(objBool, objNum, objReal, objStr, objRef, objArray, objDict, objStream, objVariant, true);
 
     temp.clear();
     // NOTE: Save the document but prevent indirect objects from being collected
     doc.Save(out, PdfSaveOptions::NoCollectGarbage);
 
     // IsDirty should be false after saving
-    TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, false);
+    TestObjectsDirty(objBool, objNum, objReal, objStr, objRef, objArray, objDict, objStream, objVariant, false);
 }
 
 TEST_CASE("testIsDirtyFalse")

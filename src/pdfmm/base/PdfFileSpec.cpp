@@ -44,10 +44,10 @@ void PdfFileSpec::Init(const string_view& filename, bool embed, bool striPath)
     {
         PdfDictionary ef;
 
-        auto embeddedStream = this->GetDocument().GetObjects().CreateDictionaryObject("EmbeddedFile");
-        this->EmbeddFile(*embeddedStream, filename);
+        auto& embeddedStream = this->GetDocument().GetObjects().CreateDictionaryObject("EmbeddedFile");
+        this->EmbeddFile(embeddedStream, filename);
 
-        ef.AddKey("F", embeddedStream->GetIndirectReference());
+        ef.AddKey("F", embeddedStream.GetIndirectReference());
 
         this->GetObject().GetDictionary().AddKey("EF", ef);
     }
@@ -60,10 +60,10 @@ void PdfFileSpec::Init(const string_view& filename, const char* data, size_t siz
 
     PdfDictionary ef;
 
-    auto embeddedStream = this->GetDocument().GetObjects().CreateDictionaryObject("EmbeddedFile");
-    this->EmbeddFileFromMem(*embeddedStream, data, size);
+    auto& embeddedStream = this->GetDocument().GetObjects().CreateDictionaryObject("EmbeddedFile");
+    this->EmbeddFileFromMem(embeddedStream, data, size);
 
-    ef.AddKey("F", embeddedStream->GetIndirectReference());
+    ef.AddKey("F", embeddedStream.GetIndirectReference());
 
     this->GetObject().GetDictionary().AddKey("EF", ef);
 }

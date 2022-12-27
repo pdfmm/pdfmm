@@ -370,16 +370,16 @@ void PdfPage::SetICCProfile(const string_view& csTag, InputStream& stream,
     }
 
     // Create a colorspace object
-    PdfObject* iccObject = this->GetDocument().GetObjects().CreateDictionaryObject();
+    auto& iccObject = this->GetDocument().GetObjects().CreateDictionaryObject();
     PdfName nameForCS = mm::ColorSpaceToNameRaw(alternateColorSpace);
-    iccObject->GetDictionary().AddKey("Alternate", nameForCS);
-    iccObject->GetDictionary().AddKey("N", colorComponents);
-    iccObject->GetOrCreateStream().SetData(stream);
+    iccObject.GetDictionary().AddKey("Alternate", nameForCS);
+    iccObject.GetDictionary().AddKey("N", colorComponents);
+    iccObject.GetOrCreateStream().SetData(stream);
 
     // Add the colorspace
     PdfArray array;
     array.Add(PdfName("ICCBased"));
-    array.Add(iccObject->GetIndirectReference());
+    array.Add(iccObject.GetIndirectReference());
 
     PdfDictionary iccBasedDictionary;
     iccBasedDictionary.AddKey(csTag, array);

@@ -24,7 +24,7 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     m_OpenStream(false)
 {
     // register as observer for PdfIndirectObjectList
-    GetObjects().Attach(this);
+    GetObjects().Attach(*this);
     // register as stream factory for PdfIndirectObjectList
     GetObjects().SetStreamFactory(this);
 
@@ -50,7 +50,7 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
 PdfImmediateWriter::~PdfImmediateWriter()
 {
     if (m_attached)
-        GetObjects().Detach(this);
+        GetObjects().Detach(*this);
 }
 
 PdfWriteFlags PdfImmediateWriter::GetWriteFlags() const
@@ -120,7 +120,7 @@ void PdfImmediateWriter::Finish()
     m_Device->Flush();
 
     // we are done now
-    GetObjects().Detach(this);
+    GetObjects().Detach(*this);
     m_attached = false;
 }
 

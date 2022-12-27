@@ -2551,7 +2551,7 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
 void PdfDifferenceEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     (void)name;
-    obj = objects.CreateDictionaryObject();
+    obj = &objects.CreateDictionaryObject();
     auto& dict = obj->GetDictionary();
 
     PdfName baseExportName;

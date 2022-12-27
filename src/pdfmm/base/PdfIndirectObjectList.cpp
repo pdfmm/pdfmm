@@ -209,7 +209,7 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
     return PdfReference(nextObjectNum, 0);
 }
 
-PdfObject* PdfIndirectObjectList::CreateDictionaryObject(const string_view& type,
+PdfObject& PdfIndirectObjectList::CreateDictionaryObject(const string_view& type,
     const std::string_view& subtype)
 {
     auto dict = PdfDictionary();
@@ -222,31 +222,31 @@ PdfObject* PdfIndirectObjectList::CreateDictionaryObject(const string_view& type
     auto ret = new PdfObject(std::move(dict));
     ret->setDirty();
     addNewObject(ret);
-    return ret;
+    return *ret;
 }
 
-PdfObject* PdfIndirectObjectList::CreateArrayObject()
+PdfObject& PdfIndirectObjectList::CreateArrayObject()
 {
     auto ret = new PdfObject(PdfArray());
     ret->setDirty();
     addNewObject(ret);
-    return ret;
+    return *ret;
 }
 
-PdfObject* PdfIndirectObjectList::CreateObject(const PdfObject& obj)
+PdfObject& PdfIndirectObjectList::CreateObject(const PdfObject& obj)
 {
     auto ret = new PdfObject(obj);
     ret->setDirty();
     addNewObject(ret);
-    return ret;
+    return *ret;
 }
 
-PdfObject* PdfIndirectObjectList::CreateObject(PdfObject&& obj)
+PdfObject& PdfIndirectObjectList::CreateObject(PdfObject&& obj)
 {
     auto ret = new PdfObject(std::move(obj));
     ret->setDirty();
     addNewObject(ret);
-    return ret;
+    return *ret;
 }
 
 int32_t PdfIndirectObjectList::SafeAddFreeObject(const PdfReference& reference)
@@ -415,12 +415,12 @@ void PdfIndirectObjectList::visitObject(const PdfObject& obj, unordered_set<PdfR
     }
 }
 
-void PdfIndirectObjectList::Detach(Observer* observer)
+void PdfIndirectObjectList::Detach(Observer& observer)
 {
     auto it = m_observers.begin();
     while (it != m_observers.end())
     {
-        if (*it == observer)
+        if (*it == &observer)
         {
             m_observers.erase(it);
             break;
@@ -483,9 +483,9 @@ unsigned PdfIndirectObjectList::GetSize() const
     return (unsigned)m_Objects.size();
 }
 
-void PdfIndirectObjectList::Attach(Observer* observer)
+void PdfIndirectObjectList::Attach(Observer& observer)
 {
-    m_observers.push_back(observer);
+    m_observers.push_back(&observer);
 }
 
 void PdfIndirectObjectList::SetStreamFactory(StreamFactory* factory)

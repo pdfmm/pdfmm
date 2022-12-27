@@ -136,8 +136,8 @@ void PdfShadingPattern::Init(PdfShadingPatternType shadingType)
     }
     else
     {
-        PdfObject* shadingObject = this->GetObject().GetDocument()->GetObjects().CreateObject(std::move(shading));
-        this->GetObject().GetDictionary().AddKey("Shading", shadingObject->GetIndirectReference());
+        auto& shadingObject = this->GetObject().GetDocument()->GetObjects().CreateObject(std::move(shading));
+        this->GetObject().GetDictionary().AddKey("Shading", shadingObject.GetIndirectReference());
     }
 }
 

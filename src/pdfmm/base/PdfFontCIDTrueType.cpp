@@ -63,7 +63,7 @@ void PdfFontCIDTrueType::embedFontSubset()
         cidSetData[dataIndex] |= bits[gid & 7];
     }
 
-    auto cidSetObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-    cidSetObj->GetOrCreateStream().SetData(cidSetData);
-    GetDescriptor().GetDictionary().AddKeyIndirect("CIDSet", *cidSetObj);
+    auto& cidSetObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
+    cidSetObj.GetOrCreateStream().SetData(cidSetData);
+    GetDescriptor().GetDictionary().AddKeyIndirect("CIDSet", cidSetObj);
 }

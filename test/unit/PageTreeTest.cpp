@@ -308,7 +308,7 @@ void PdfPageTest::CreateTestTreeCustom(PdfMemDocument& doc)
 
     for (unsigned i = 0; i < COUNT; i++)
     {
-        PdfObject* node = doc.GetObjects().CreateDictionaryObject("Pages");
+        auto& node = doc.GetObjects().CreateDictionaryObject("Pages");
         PdfArray nodeKids;
 
         for (unsigned j = 0; j < COUNT; j++)
@@ -320,9 +320,9 @@ void PdfPageTest::CreateTestTreeCustom(PdfMemDocument& doc)
             nodeKids.Add(page->GetObject().GetIndirectReference());
         }
 
-        node->GetDictionary().AddKey("Kids", nodeKids);
-        node->GetDictionary().AddKey("Count", static_cast<int64_t>(COUNT));
-        rootKids.Add(node->GetIndirectReference());
+        node.GetDictionary().AddKey("Kids", nodeKids);
+        node.GetDictionary().AddKey("Count", static_cast<int64_t>(COUNT));
+        rootKids.Add(node.GetIndirectReference());
     }
 
     root.GetDictionary().AddKey("Kids", rootKids);
@@ -360,7 +360,7 @@ vector<PdfObject*> createNodes(PdfMemDocument& doc, unsigned nodeCount)
 
     for (unsigned i = 0; i < nodeCount; ++i)
     {
-        nodes[i] = doc.GetObjects().CreateDictionaryObject("Pages");
+        nodes[i] = &doc.GetObjects().CreateDictionaryObject("Pages");
         // init required keys
         nodes[i]->GetDictionary().AddKey("Kids", PdfArray());
         nodes[i]->GetDictionary().AddKey("Count", PdfVariant(static_cast<int64_t>(0L)));

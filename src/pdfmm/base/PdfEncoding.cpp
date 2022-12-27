@@ -316,13 +316,13 @@ void PdfEncoding::ExportToFont(PdfFont& font, PdfEncodingExportFlags flags) cons
         auto fontName = font.GetName();
 
         // The CIDSystemInfo, should be an indirect object
-        auto cidSystemInfo = font.GetDocument().GetObjects().CreateDictionaryObject();
-        cidSystemInfo->GetDictionary().AddKey("Registry", PdfString(CMAP_REGISTRY_NAME));
-        cidSystemInfo->GetDictionary().AddKey("Ordering", PdfString(fontName));
-        cidSystemInfo->GetDictionary().AddKey("Supplement", static_cast<int64_t>(0));
+        auto& cidSystemInfo = font.GetDocument().GetObjects().CreateDictionaryObject();
+        cidSystemInfo.GetDictionary().AddKey("Registry", PdfString(CMAP_REGISTRY_NAME));
+        cidSystemInfo.GetDictionary().AddKey("Ordering", PdfString(fontName));
+        cidSystemInfo.GetDictionary().AddKey("Supplement", static_cast<int64_t>(0));
 
         // NOTE: Setting the CIDSystemInfo params in the descendant font object is required
-        font.GetDescendantFontObject().GetDictionary().AddKeyIndirect("CIDSystemInfo", *cidSystemInfo);
+        font.GetDescendantFontObject().GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);
 
         // Some CMap encodings has a name representation, such as
         // Identity-H/Identity-V. NOTE: Use a fixed representation only
@@ -330,13 +330,13 @@ void PdfEncoding::ExportToFont(PdfFont& font, PdfEncodingExportFlags flags) cons
         if (font.IsSubsettingEnabled() || !tryExportObjectTo(fontDict, true))
         {
             // If it doesn't have a name represenation, try to export a CID CMap
-            auto cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
+            auto& cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
 
             // NOTE: Setting the CIDSystemInfo params in the CMap stream object is required
-            cmapObj->GetDictionary().AddKeyIndirect("CIDSystemInfo", *cidSystemInfo);
+            cmapObj.GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);
 
-            writeCIDMapping(*cmapObj, GetFont(), fontName);
-            fontDict.AddKeyIndirect("Encoding", *cmapObj);
+            writeCIDMapping(cmapObj, GetFont(), fontName);
+            fontDict.AddKeyIndirect("Encoding", cmapObj);
         }
     }
     else
@@ -347,9 +347,9 @@ void PdfEncoding::ExportToFont(PdfFont& font, PdfEncodingExportFlags flags) cons
 
     if ((flags & PdfEncodingExportFlags::SkipToUnicode) == PdfEncodingExportFlags::None)
     {
-        auto cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
-        writeToUnicodeCMap(*cmapObj);
-        fontDict.AddKeyIndirect("ToUnicode", *cmapObj);
+        auto& cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
+        writeToUnicodeCMap(cmapObj);
+        fontDict.AddKeyIndirect("ToUnicode", cmapObj);
     }
 }
 

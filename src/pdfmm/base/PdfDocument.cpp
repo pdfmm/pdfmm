@@ -40,16 +40,16 @@ PdfDocument::PdfDocument(bool empty) :
     {
         m_TrailerObj.reset(new PdfObject()); // The trailer is NO part of the vector of objects
         m_TrailerObj->SetDocument(this);
-        auto catalog = m_Objects.CreateDictionaryObject("Catalog");
+        auto& catalog = m_Objects.CreateDictionaryObject("Catalog");
         m_Trailer.reset(new PdfTrailer(*m_TrailerObj));
 
-        m_Catalog.reset(new PdfCatalog(*catalog));
-        m_TrailerObj->GetDictionary().AddKeyIndirect("Root", *catalog);
+        m_Catalog.reset(new PdfCatalog(catalog));
+        m_TrailerObj->GetDictionary().AddKeyIndirect("Root", catalog);
 
-        auto info = m_Objects.CreateDictionaryObject();
-        m_Info.reset(new PdfInfo(*info,
+        auto& info = m_Objects.CreateDictionaryObject();
+        m_Info.reset(new PdfInfo(info,
             PdfInfoInitial::WriteProducer | PdfInfoInitial::WriteCreationTime));
-        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", *info);
+        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", info);
 
         Init();
     }
@@ -496,7 +496,7 @@ void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
     auto info = m_TrailerObj->GetDictionary().FindKey("Info");
     if (info == nullptr)
     {
-        info = m_Objects.CreateDictionaryObject();
+        info = &m_Objects.CreateDictionaryObject();
         m_Info.reset(new PdfInfo(*info));
         m_TrailerObj->GetDictionary().AddKeyIndirect("Info", *info);
     }

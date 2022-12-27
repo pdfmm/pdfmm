@@ -866,9 +866,9 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
         case PdfColorSpace::Separation:
         {
             // Build color-spaces for separation
-            PdfObject* csTintFunc = document.GetObjects().CreateDictionaryObject();
+            auto& csTintFunc = document.GetObjects().CreateDictionaryObject();
 
-            csTintFunc->GetDictionary().AddKey("BitsPerSample", static_cast<int64_t>(8));
+            csTintFunc.GetDictionary().AddKey("BitsPerSample", static_cast<int64_t>(8));
 
             PdfArray decode;
             decode.Add(static_cast<int64_t>(0));
@@ -879,20 +879,20 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
             decode.Add(static_cast<int64_t>(1));
             decode.Add(static_cast<int64_t>(0));
             decode.Add(static_cast<int64_t>(1));
-            csTintFunc->GetDictionary().AddKey("Decode", decode);
+            csTintFunc.GetDictionary().AddKey("Decode", decode);
 
             PdfArray domain;
             domain.Add(static_cast<int64_t>(0));
             domain.Add(static_cast<int64_t>(1));
-            csTintFunc->GetDictionary().AddKey("Domain", domain);
+            csTintFunc.GetDictionary().AddKey("Domain", domain);
 
             PdfArray encode;
             encode.Add(static_cast<int64_t>(0));
             encode.Add(static_cast<int64_t>(1));
-            csTintFunc->GetDictionary().AddKey("Encode", encode);
+            csTintFunc.GetDictionary().AddKey("Encode", encode);
 
-            csTintFunc->GetDictionary().AddKey(PdfName::KeyFilter, PdfName("FlateDecode"));
-            csTintFunc->GetDictionary().AddKey("FunctionType", PdfVariant(static_cast<int64_t>(0)));
+            csTintFunc.GetDictionary().AddKey(PdfName::KeyFilter, PdfName("FlateDecode"));
+            csTintFunc.GetDictionary().AddKey("FunctionType", PdfVariant(static_cast<int64_t>(0)));
             //csTintFunc->GetDictionary().AddKey( "FunctionType", 
             //                                    PdfVariant( static_cast<int64_t>(EPdfFunctionType::Sampled) ) );
 
@@ -907,23 +907,21 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     PdfArray range;
                     range.Add(static_cast<int64_t>(0));
                     range.Add(static_cast<int64_t>(1));
-                    csTintFunc->GetDictionary().AddKey("Range", range);
+                    csTintFunc.GetDictionary().AddKey("Range", range);
 
                     PdfArray size;
                     size.Add(static_cast<int64_t>(2));
-                    csTintFunc->GetDictionary().AddKey("Size", size);
+                    csTintFunc.GetDictionary().AddKey("Size", size);
 
-                    csTintFunc->GetOrCreateStream().SetData(bufferview(data, 1 * 2));
+                    csTintFunc.GetOrCreateStream().SetData(bufferview(data, 1 * 2));
 
                     PdfArray csArr;
                     csArr.Add(PdfName("Separation"));
                     csArr.Add(PdfName(m_SeparationName));
                     csArr.Add(PdfName("DeviceGray"));
-                    csArr.Add(csTintFunc->GetIndirectReference());
+                    csArr.Add(csTintFunc.GetIndirectReference());
 
-                    PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
-
-                    return csp;
+                    return &document.GetObjects().CreateObject(std::move(csArr));
                 }
                 break;
 
@@ -944,23 +942,21 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     range.Add(static_cast<int64_t>(1));
                     range.Add(static_cast<int64_t>(0));
                     range.Add(static_cast<int64_t>(1));
-                    csTintFunc->GetDictionary().AddKey("Range", range);
+                    csTintFunc.GetDictionary().AddKey("Range", range);
 
                     PdfArray size;
                     size.Add(static_cast<int64_t>(2));
-                    csTintFunc->GetDictionary().AddKey("Size", size);
+                    csTintFunc.GetDictionary().AddKey("Size", size);
 
-                    csTintFunc->GetOrCreateStream().SetData(bufferview(data, 3 * 2));
+                    csTintFunc.GetOrCreateStream().SetData(bufferview(data, 3 * 2));
 
                     PdfArray csArr;
                     csArr.Add(PdfName("Separation"));
                     csArr.Add(PdfName(m_SeparationName));
                     csArr.Add(PdfName("DeviceRGB"));
-                    csArr.Add(csTintFunc->GetIndirectReference());
+                    csArr.Add(csTintFunc.GetIndirectReference());
 
-                    PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
-
-                    return csp;
+                    return &document.GetObjects().CreateObject(std::move(csArr));
                 }
                 break;
 
@@ -985,23 +981,21 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     range.Add(static_cast<int64_t>(1));
                     range.Add(static_cast<int64_t>(0));
                     range.Add(static_cast<int64_t>(1));
-                    csTintFunc->GetDictionary().AddKey("Range", range);
+                    csTintFunc.GetDictionary().AddKey("Range", range);
 
                     PdfArray size;
                     size.Add(static_cast<int64_t>(2));
-                    csTintFunc->GetDictionary().AddKey("Size", size);
+                    csTintFunc.GetDictionary().AddKey("Size", size);
 
                     PdfArray csArr;
                     csArr.Add(PdfName("Separation"));
                     csArr.Add(PdfName(m_SeparationName));
                     csArr.Add(PdfName("DeviceCMYK"));
-                    csArr.Add(csTintFunc->GetIndirectReference());
+                    csArr.Add(csTintFunc.GetIndirectReference());
 
-                    csTintFunc->GetOrCreateStream().SetData(bufferview(data, 4 * 2)); // set stream as last, so that it will work with PdfStreamedDocument
+                    csTintFunc.GetOrCreateStream().SetData(bufferview(data, 4 * 2)); // set stream as last, so that it will work with PdfStreamedDocument
 
-                    PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
-
-                    return csp;
+                    return &document.GetObjects().CreateObject(std::move(csArr));
                 }
                 break;
 
@@ -1022,23 +1016,21 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     range.Add(static_cast<int64_t>(1));
                     range.Add(static_cast<int64_t>(0));
                     range.Add(static_cast<int64_t>(1));
-                    csTintFunc->GetDictionary().AddKey("Range", range);
+                    csTintFunc.GetDictionary().AddKey("Range", range);
 
                     PdfArray size;
                     size.Add(static_cast<int64_t>(2));
-                    csTintFunc->GetDictionary().AddKey("Size", size);
+                    csTintFunc.GetDictionary().AddKey("Size", size);
 
-                    csTintFunc->GetOrCreateStream().SetData(bufferview(data, 3 * 2));
+                    csTintFunc.GetOrCreateStream().SetData(bufferview(data, 3 * 2));
 
                     PdfArray csArr;
                     csArr.Add(PdfName("Separation"));
                     csArr.Add(PdfName(m_SeparationName));
                     csArr.Add(PdfName("Lab"));
-                    csArr.Add(csTintFunc->GetIndirectReference());
+                    csArr.Add(csTintFunc.GetIndirectReference());
 
-                    PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
-
-                    return csp;
+                    return &document.GetObjects().CreateObject(std::move(csArr));
                 }
                 break;
 
@@ -1082,9 +1074,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
             labArr.Add(PdfName("Lab"));
             labArr.Add(labDict);
 
-            PdfObject* labp = document.GetObjects().CreateObject(std::move(labArr));
-
-            return labp;
+            return &document.GetObjects().CreateObject(std::move(labArr));
         }
         break;
 

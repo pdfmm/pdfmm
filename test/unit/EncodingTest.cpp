@@ -282,10 +282,10 @@ TEST_CASE("testToUnicodeParse")
     string expected("\xE1\x80\x81\xE1\x80\x82\xE1\x80\x83\xE1\x80\x84\x0A\x09\x08\x07\x06\x05\xE1\x80\x8B\xE1\x80\x8C\xE1\x80\x8D\xE1\x80\x8E\xE1\x80\x8F"sv);
 
     PdfMemDocument doc;
-    auto toUnicodeObj = doc.GetObjects().CreateDictionaryObject();
-    toUnicodeObj->GetOrCreateStream().SetData(toUnicode);
+    auto& toUnicodeObj = doc.GetObjects().CreateDictionaryObject();
+    toUnicodeObj.GetOrCreateStream().SetData(toUnicode);
 
-    PdfEncoding encoding(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::CreateFromObject(*toUnicodeObj));
+    PdfEncoding encoding(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::CreateFromObject(toUnicodeObj));
 
     auto utf8str = encoding.ConvertToUtf8(PdfString::FromRaw(encodedStr));
     REQUIRE(utf8str == expected);
@@ -315,10 +315,10 @@ TEST_CASE("testToUnicodeParse")
         try
         {
             PdfIndirectObjectList invalidList;
-            auto invalidObject = invalidList.CreateDictionaryObject();
-            invalidObject->GetOrCreateStream().SetData(bufferview(toUnicodeInvalidTests[i], char_traits<char>::length(toUnicodeInvalidTests[i])));
+            auto& invalidObject = invalidList.CreateDictionaryObject();
+            invalidObject.GetOrCreateStream().SetData(bufferview(toUnicodeInvalidTests[i], char_traits<char>::length(toUnicodeInvalidTests[i])));
 
-            PdfEncoding encodingTestInvalid(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::CreateFromObject(*invalidObject));
+            PdfEncoding encodingTestInvalid(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::CreateFromObject(invalidObject));
 
             auto unicodeStringTestInvalid = encodingTestInvalid.ConvertToUtf8(PdfString::FromRaw(encodedStr));
 

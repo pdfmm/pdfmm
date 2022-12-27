@@ -47,9 +47,9 @@ bool PdfCIDToGIDMap::TryMapCIDToGID(unsigned cid, unsigned& gid) const
 
 void PdfCIDToGIDMap::ExportTo(PdfObject& descendantFont)
 {
-    auto cidToGidMap = descendantFont.MustGetDocument().GetObjects().CreateDictionaryObject();
-    descendantFont.GetDictionary().AddKeyIndirect("CIDToGIDMap", *cidToGidMap);
-    auto& stream = cidToGidMap->GetOrCreateStream();
+    auto& cidToGidMap = descendantFont.MustGetDocument().GetObjects().CreateDictionaryObject();
+    descendantFont.GetDictionary().AddKeyIndirect("CIDToGIDMap", cidToGidMap);
+    auto& stream = cidToGidMap.GetOrCreateStream();
     auto output = stream.GetOutputStream();
     unsigned previousCid = 0;
     array<char, 2> entry;

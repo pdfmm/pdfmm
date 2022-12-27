@@ -65,7 +65,7 @@ void PdfFontCID::initImported()
     this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(this->GetName()));
 
     // The descendant font is a CIDFont:
-    m_descendantFont = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("Font");
+    m_descendantFont = &this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("Font");
 
     // The DecendantFonts, should be an indirect object:
     arr.Add(m_descendantFont->GetIndirectReference());
@@ -92,10 +92,10 @@ void PdfFontCID::initImported()
     m_descendantFont->GetDictionary().AddKey("CIDToGIDMap", PdfName("Identity"));
 
     // The FontDescriptor, should be an indirect object:
-    auto descriptorObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor");
-    m_descendantFont->GetDictionary().AddKeyIndirect("FontDescriptor", *descriptorObj);
-    FillDescriptor(descriptorObj->GetDictionary());
-    m_descriptor = descriptorObj;
+    auto& descriptorObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor");
+    m_descendantFont->GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);
+    FillDescriptor(descriptorObj.GetDictionary());
+    m_descriptor = &descriptorObj;
 }
 
 void PdfFontCID::embedFont()

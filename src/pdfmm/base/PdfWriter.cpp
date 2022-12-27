@@ -79,7 +79,7 @@ void PdfWriter::Write(OutputStreamDevice& device)
         m_Encrypt->GenerateEncryptionKey(m_identifier);
 
         // Add our own Encryption dictionary
-        m_EncryptObj = m_Objects->CreateDictionaryObject();
+        m_EncryptObj = &m_Objects->CreateDictionaryObject();
         m_Encrypt->CreateEncryptionDictionary(m_EncryptObj->GetDictionary());
     }
 
@@ -301,9 +301,9 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
         *originalIdentifier = identifier;
 }
 
-void PdfWriter::SetEncryptObj(PdfObject* obj)
+void PdfWriter::SetEncryptObj(PdfObject& obj)
 {
-    m_EncryptObj = obj;
+    m_EncryptObj = &obj;
 }
 
 void PdfWriter::SetEncrypted(const PdfEncrypt& encrypt)

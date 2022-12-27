@@ -526,41 +526,41 @@ void PdfFont::EmbedFontFile(PdfObject& descriptor)
 
 void PdfFont::EmbedFontFileType1(PdfObject& descriptor, const bufferview& data, unsigned length1, unsigned length2, unsigned length3)
 {
-    auto contents = embedFontFileData(descriptor, "FontFile", data);
-    contents->GetDictionary().AddKey("Length1", static_cast<int64_t>(length1));
-    contents->GetDictionary().AddKey("Length2", static_cast<int64_t>(length2));
-    contents->GetDictionary().AddKey("Length3", static_cast<int64_t>(length3));
+    auto& contents = embedFontFileData(descriptor, "FontFile", data);
+    contents.GetDictionary().AddKey("Length1", static_cast<int64_t>(length1));
+    contents.GetDictionary().AddKey("Length2", static_cast<int64_t>(length2));
+    contents.GetDictionary().AddKey("Length3", static_cast<int64_t>(length3));
 }
 
 void PdfFont::EmbedFontFileType1CCF(PdfObject& descriptor, const bufferview& data)
 {
-    auto contents = embedFontFileData(descriptor, "FontFile3", data);
+    auto& contents = embedFontFileData(descriptor, "FontFile3", data);
     PdfName subtype;
     if (IsCIDKeyed())
         subtype = PdfName("CIDFontType0C");
     else
         subtype = PdfName("Type1C");
 
-    contents->GetDictionary().AddKey(PdfName::KeySubtype, subtype);
+    contents.GetDictionary().AddKey(PdfName::KeySubtype, subtype);
 }
 
 void PdfFont::EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data)
 {
-    auto contents = embedFontFileData(descriptor, "FontFile2", data);
-    contents->GetDictionary().AddKey("Length1", static_cast<int64_t>(data.size()));
+    auto& contents = embedFontFileData(descriptor, "FontFile2", data);
+    contents.GetDictionary().AddKey("Length1", static_cast<int64_t>(data.size()));
 }
 
 void PdfFont::EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data)
 {
     auto contents = embedFontFileData(descriptor, "FontFile3", data);
-    contents->GetDictionary().AddKey(PdfName::KeySubtype, PdfName("OpenType"));
+    contents.GetDictionary().AddKey(PdfName::KeySubtype, PdfName("OpenType"));
 }
 
-PdfObject* PdfFont::embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName, const bufferview& data)
+PdfObject& PdfFont::embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName, const bufferview& data)
 {
-    auto contents = GetDocument().GetObjects().CreateDictionaryObject();
-    descriptor.GetDictionary().AddKeyIndirect(fontFileName, *contents);
-    contents->GetOrCreateStream().SetData(data);
+    auto& contents = GetDocument().GetObjects().CreateDictionaryObject();
+    descriptor.GetDictionary().AddKeyIndirect(fontFileName, contents);
+    contents.GetOrCreateStream().SetData(data);
     return contents;
 }
 

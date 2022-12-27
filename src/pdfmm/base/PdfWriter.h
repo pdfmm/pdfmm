@@ -168,7 +168,7 @@ protected:
     PdfObject* GetEncryptObj() { return m_EncryptObj; }
     const PdfString& GetIdentifier() { return m_identifier; }
     void SetIdentifier(const PdfString& identifier) { m_identifier = identifier; }
-    void SetEncryptObj(PdfObject* obj);
+    void SetEncryptObj(PdfObject& obj);
 
 protected:
     charbuff m_buffer;

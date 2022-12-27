@@ -151,21 +151,21 @@ void PdfSignature::AddCertificationReference(PdfCertPermission perm)
 
     m_ValueObj->GetDictionary().RemoveKey("Reference");
 
-    auto sigRef = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("SigRef");
-    sigRef->GetDictionary().AddKey("TransformMethod", PdfName("DocMDP"));
+    auto& sigRef = this->GetDocument().GetObjects().CreateDictionaryObject("SigRef");
+    sigRef.GetDictionary().AddKey("TransformMethod", PdfName("DocMDP"));
 
-    auto transParams = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("TransformParams");
-    transParams->GetDictionary().AddKey("V", PdfName("1.2"));
-    transParams->GetDictionary().AddKey("P", (int64_t)perm);
-    sigRef->GetDictionary().AddKey("TransformParams", *transParams);
+    auto& transParams = this->GetDocument().GetObjects().CreateDictionaryObject("TransformParams");
+    transParams.GetDictionary().AddKey("V", PdfName("1.2"));
+    transParams.GetDictionary().AddKey("P", (int64_t)perm);
+    sigRef.GetDictionary().AddKey("TransformParams", transParams);
 
-    auto& catalog = GetObject().GetDocument()->GetCatalog();
+    auto& catalog = GetDocument().GetCatalog();
     PdfObject permObject;
     permObject.GetDictionary().AddKey("DocMDP", this->GetObject().GetDictionary().GetKey("V")->GetReference());
     catalog.GetDictionary().AddKey("Perms", permObject);
 
     PdfArray refers;
-    refers.Add(*sigRef);
+    refers.Add(sigRef);
 
     m_ValueObj->GetDictionary().AddKey("Reference", PdfVariant(refers));
 }
@@ -235,7 +235,7 @@ void PdfSignature::EnsureValueObject()
     if (m_ValueObj != nullptr)
         return;
 
-    m_ValueObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("Sig");
+    m_ValueObj = &this->GetDocument().GetObjects().CreateDictionaryObject("Sig");
     if (m_ValueObj == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 

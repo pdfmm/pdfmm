@@ -17,7 +17,7 @@ using namespace mm;
 PdfXRefStream::PdfXRefStream(PdfWriter& writer) :
     PdfXRef(writer),
     m_xrefStreamEntryIndex(-1),
-    m_xrefStreamObj(writer.GetObjects().CreateDictionaryObject("XRef")),
+    m_xrefStreamObj(&writer.GetObjects().CreateDictionaryObject("XRef")),
     m_offset(-1)
 {
 }

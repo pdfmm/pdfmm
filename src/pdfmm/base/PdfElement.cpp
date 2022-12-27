@@ -42,7 +42,7 @@ PdfDocument& PdfElement::GetDocument() const
 
 PdfDictionaryElement::PdfDictionaryElement(PdfDocument& parent, const string_view& type,
     const string_view& subtype)
-    : PdfElement(*parent.GetObjects().CreateDictionaryObject(type, subtype),
+    : PdfElement(parent.GetObjects().CreateDictionaryObject(type, subtype),
         PdfDataType::Dictionary)
 {
 }
@@ -63,7 +63,7 @@ const PdfDictionary& PdfDictionaryElement::GetDictionary() const
 }
 
 PdfArrayElement::PdfArrayElement(PdfDocument& parent)
-    : PdfElement(*parent.GetObjects().CreateArrayObject(),
+    : PdfElement(parent.GetObjects().CreateArrayObject(),
         PdfDataType::Array)
 {
 }

@@ -64,7 +64,7 @@ PdfStreamedObjectStream::PdfStreamedObjectStream(PdfObject& parent, OutputStream
     m_CurrEncrypt(nullptr),
     m_Length(0)
 {
-    m_LengthObj = parent.GetDocument()->GetObjects().CreateObject(static_cast<int64_t>(0));
+    m_LengthObj = &parent.GetDocument()->GetObjects().CreateObject(static_cast<int64_t>(0));
     GetParent().GetDictionary().AddKey(PdfName::KeyLength, m_LengthObj->GetIndirectReference());
 }
 

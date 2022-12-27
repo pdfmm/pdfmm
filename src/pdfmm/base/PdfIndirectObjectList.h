@@ -172,10 +172,10 @@ public:
      *  \param subtype optional value of the /SubType key of the object
      *  \returns PdfObject pointer to the new PdfObject
      */
-    PdfObject* CreateDictionaryObject(const std::string_view& type = { },
+    PdfObject& CreateDictionaryObject(const std::string_view& type = { },
         const std::string_view& subtype = { });
 
-    PdfObject* CreateArrayObject();
+    PdfObject& CreateArrayObject();
 
     /** Creates a new object and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
@@ -183,20 +183,20 @@ public:
      *  \param obj value of the PdfObject
      *  \returns PdfObject pointer to the new PdfObject
      */
-    PdfObject* CreateObject(const PdfObject& obj);
-    PdfObject* CreateObject(PdfObject&& obj);
+    PdfObject& CreateObject(const PdfObject& obj);
+    PdfObject& CreateObject(PdfObject&& obj);
 
 
     /** Attach a new observer
      *  \param pObserver to attach
      */
-    void Attach(Observer* observer);
+    void Attach(Observer& observer);
 
     /** Detach an observer.
      *
      *  \param pObserver observer to detach
      */
-    void Detach(Observer* observer);
+    void Detach(Observer& observer);
 
     /** Sets a StreamFactory which is used whenever CreateStream is called.
      *

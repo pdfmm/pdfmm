@@ -251,15 +251,15 @@ void PdfImage::SetICCProfile(InputStream& stream, unsigned colorComponents, PdfC
     }
 
     // Create a colorspace object
-    PdfObject* iccObject = this->GetDocument().GetObjects().CreateDictionaryObject();
-    iccObject->GetDictionary().AddKey("Alternate", PdfName(mm::ColorSpaceToNameRaw(alternateColorSpace)));
-    iccObject->GetDictionary().AddKey("N", static_cast<int64_t>(colorComponents));
-    iccObject->GetOrCreateStream().SetData(stream);
+    auto& iccObject = this->GetDocument().GetObjects().CreateDictionaryObject();
+    iccObject.GetDictionary().AddKey("Alternate", PdfName(mm::ColorSpaceToNameRaw(alternateColorSpace)));
+    iccObject.GetDictionary().AddKey("N", static_cast<int64_t>(colorComponents));
+    iccObject.GetOrCreateStream().SetData(stream);
 
     // Add the colorspace to our image
     PdfArray array;
     array.Add(PdfName("ICCBased"));
-    array.Add(iccObject->GetIndirectReference());
+    array.Add(iccObject.GetIndirectReference());
     this->GetDictionary().AddKey("ColorSpace", array);
 }
 
@@ -793,15 +793,15 @@ void PdfImage::loadFromTiffHandle(void* handle)
             }
 
             // Create a colorspace object
-            PdfObject* pIdxObject = this->GetDocument().GetObjects().CreateDictionaryObject();
-            pIdxObject->GetOrCreateStream().SetData(data);
+            auto& idxObj = this->GetDocument().GetObjects().CreateDictionaryObject();
+            idxObj.GetOrCreateStream().SetData(data);
 
             // Add the colorspace to our image
             PdfArray colorSpace;
             colorSpace.Add(PdfName("Indexed"));
             colorSpace.Add(PdfName("DeviceRGB"));
             colorSpace.Add(static_cast<int64_t>(numColors) - 1);
-            colorSpace.Add(pIdxObject->GetIndirectReference());
+            colorSpace.Add(idxObj.GetIndirectReference());
             info.ColorSpaceArray = std::move(colorSpace);
             break;
         }
@@ -1263,13 +1263,13 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
             data[3 * i + 1] = colors->green;
             data[3 * i + 2] = colors->blue;
         }
-        PdfObject* pIdxObject = image.GetDocument().GetObjects().CreateDictionaryObject();
-        pIdxObject->GetOrCreateStream().SetData(data);
+        auto& idxObj = image.GetDocument().GetObjects().CreateDictionaryObject();
+        idxObj.GetOrCreateStream().SetData(data);
 
         PdfArray array;
         array.Add(PdfName("DeviceRGB"));
         array.Add(static_cast<int64_t>(colorCount - 1));
-        array.Add(pIdxObject->GetIndirectReference());
+        array.Add(idxObj.GetIndirectReference());
         info.ColorSpaceArray = std::move(array);
     }
     else if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)

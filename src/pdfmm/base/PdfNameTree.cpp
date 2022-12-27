@@ -144,12 +144,12 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
             limits.Add(key);
 
             // create a child object
-            PdfObject* child = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
-            child->GetDictionary().AddKey("Names", array);
-            child->GetDictionary().AddKey("Limits", limits);
+            auto& child = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
+            child.GetDictionary().AddKey("Names", array);
+            child.GetDictionary().AddKey("Limits", limits);
 
             PdfArray kids;
-            kids.Add(child->GetIndirectReference());
+            kids.Add(child.GetIndirectReference());
             this->GetObject()->GetDictionary().AddKey("Kids", kids);
             m_HasKids = true;
         }
@@ -245,12 +245,10 @@ bool PdfNameTreeNode::Rebalance()
         second.insert(second.end(), arr.begin() + (arrLength / 2) + 1, arr.end());
 
         PdfObject* child1;
-        PdfObject* child2 = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
-
         if (m_Parent == nullptr)
         {
             m_HasKids = true;
-            child1 = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
+            child1 = &this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
             this->GetObject()->GetDictionary().RemoveKey("Names");
         }
         else
@@ -258,6 +256,8 @@ bool PdfNameTreeNode::Rebalance()
             child1 = this->GetObject();
             kids = m_Parent->GetObject()->GetDictionary().MustFindKey("Kids").GetArray();
         }
+
+        auto child2 = &this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
 
         child1->GetDictionary().AddKey(key, first);
         child2->GetDictionary().AddKey(key, second);
@@ -400,7 +400,7 @@ PdfObject* PdfNameTree::GetRootNode(const PdfName& name, bool create) const
     auto rootNode = obj.GetDictionary().FindKey(name);
     if (rootNode == nullptr && create)
     {
-        rootNode = obj.GetDocument()->GetObjects().CreateDictionaryObject();
+        rootNode = &obj.GetDocument()->GetObjects().CreateDictionaryObject();
         obj.GetDictionary().AddKey(name, rootNode->GetIndirectReference());
     }
 
