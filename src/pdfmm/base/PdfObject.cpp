@@ -332,7 +332,7 @@ void PdfObject::forceCreateStream()
     if (m_Document == nullptr)
         m_Stream.reset(new PdfMemoryObjectStream(*this));
     else
-        m_Stream.reset(m_Document->GetObjects().CreateStream(*this));
+        m_Stream = m_Document->GetObjects().CreateStream(*this);
 }
 
 PdfObjectStream* PdfObject::getStream()

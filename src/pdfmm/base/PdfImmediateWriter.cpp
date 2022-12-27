@@ -124,11 +124,11 @@ void PdfImmediateWriter::Finish()
     m_attached = false;
 }
 
-PdfObjectStream* PdfImmediateWriter::CreateStream(PdfObject& parent)
+unique_ptr<PdfObjectStream> PdfImmediateWriter::CreateStream(PdfObject& parent)
 {
-    return m_OpenStream ?
+    return unique_ptr<PdfObjectStream>(m_OpenStream ?
         static_cast<PdfObjectStream*>(new PdfMemoryObjectStream(parent)) :
-        static_cast<PdfObjectStream*>(new PdfStreamedObjectStream(parent, *m_Device));
+        static_cast<PdfObjectStream*>(new PdfStreamedObjectStream(parent, *m_Device)));
 }
 
 void PdfImmediateWriter::FinishLastObject()

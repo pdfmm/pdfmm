@@ -85,7 +85,7 @@ public:
          *
          *  \returns a new stream object
          */
-        virtual PdfObjectStream* CreateStream(PdfObject& parent) = 0;
+        virtual std::unique_ptr<PdfObjectStream> CreateStream(PdfObject& parent) = 0;
     };
 
 public:
@@ -188,19 +188,19 @@ public:
 
 
     /** Attach a new observer
-     *  \param pObserver to attach
+     *  \param observer to attach
      */
     void Attach(Observer& observer);
 
     /** Detach an observer.
      *
-     *  \param pObserver observer to detach
+     *  \param observer observer to detach
      */
     void Detach(Observer& observer);
 
     /** Sets a StreamFactory which is used whenever CreateStream is called.
      *
-     *  \param pFactory a stream factory or nullptr to reset to the default factory
+     *  \param factory a stream factory or nullptr to reset to the default factory
      */
     void SetStreamFactory(StreamFactory* factory);
 
@@ -211,7 +211,7 @@ public:
      *
      *  \returns a new stream object
      */
-    PdfObjectStream* CreateStream(PdfObject& parent);
+    std::unique_ptr<PdfObjectStream> CreateStream(PdfObject& parent);
 
     /** Can be called to force objects to be written to disk.
      *
