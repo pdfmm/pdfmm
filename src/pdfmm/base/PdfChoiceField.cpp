@@ -93,7 +93,7 @@ PdfString PdChoiceField::GetItem(unsigned index) const
     return item.GetString();
 }
 
-nullable<PdfString> PdChoiceField::GetItemDisplayText(int index) const
+nullable<const PdfString&> PdChoiceField::GetItemDisplayText(int index) const
 {
     auto* opt = GetObject().GetDictionary().FindKey("Opt");
     if (opt == nullptr)
@@ -120,13 +120,13 @@ nullable<PdfString> PdChoiceField::GetItemDisplayText(int index) const
     return item.GetString();
 }
 
-size_t PdChoiceField::GetItemCount() const
+unsigned PdChoiceField::GetItemCount() const
 {
     auto* opt = GetObject().GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         return 0;
 
-    return opt->GetArray().size();
+    return opt->GetArray().GetSize();
 }
 
 void PdChoiceField::SetSelectedIndex(int index)

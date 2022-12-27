@@ -64,12 +64,12 @@ namespace mm
          *
          * \see GetItem
          */
-        nullable<PdfString> GetItemDisplayText(int index) const;
+        nullable<const PdfString&> GetItemDisplayText(int index) const;
 
         /**
          * \returns the number of items in this list
          */
-        size_t GetItemCount() const;
+        unsigned GetItemCount() const;
 
         /** Sets the currently selected item
          *  \param index index of the currently selected item

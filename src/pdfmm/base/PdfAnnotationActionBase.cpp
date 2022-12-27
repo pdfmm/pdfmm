@@ -46,3 +46,109 @@ shared_ptr<PdfAction> PdfAnnotationActionBase::getAction()
 
     return m_Action;
 }
+
+PdfAppearanceCharacteristics::PdfAppearanceCharacteristics(PdfDocument& parent)
+    : PdfDictionaryElement(parent)
+{
+}
+
+PdfAppearanceCharacteristics::PdfAppearanceCharacteristics(PdfObject& obj)
+    : PdfDictionaryElement(obj)
+{
+}
+
+void PdfAppearanceCharacteristics::SetBorderColor(nullable<const PdfColor&> color)
+{
+    if (color.has_value())
+        GetDictionary().AddKey("BC", color->ToArray());
+    else
+        GetDictionary().RemoveKey("BC");
+}
+
+PdfColor PdfAppearanceCharacteristics::GetBorderColor() const
+{
+    PdfColor color;
+    auto colorObj = GetDictionary().FindKeyParent("BC");
+    if (colorObj == nullptr
+        || !PdfColor::TryCreateFromObject(*colorObj, color))
+    {
+        return { };
+    }
+
+    return color;
+}
+
+void PdfAppearanceCharacteristics::SetBackgroundColor(nullable<const PdfColor&> color)
+{
+    if (color.has_value())
+        GetDictionary().AddKey("BG", color->ToArray());
+    else
+        GetDictionary().RemoveKey("BG");
+}
+
+PdfColor PdfAppearanceCharacteristics::GetBackgroundColor() const
+{
+    PdfColor color;
+    auto colorObj = GetDictionary().FindKeyParent("BG");
+    if (colorObj == nullptr
+        || !PdfColor::TryCreateFromObject(*colorObj, color))
+    {
+        return { };
+    }
+
+    return color;
+}
+
+void PdfAppearanceCharacteristics::SetRolloverCaption(nullable<const PdfString&> text)
+{
+    if (text.has_value())
+        GetDictionary().AddKey("RC", *text);
+    else
+        GetDictionary().RemoveKey("RC");
+}
+
+nullable<const PdfString&> PdfAppearanceCharacteristics::GetRolloverCaption() const
+{
+    auto obj = GetDictionary().FindKeyParent("RC");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
+        return { };
+
+    return *str;
+}
+
+void PdfAppearanceCharacteristics::SetAlternateCaption(nullable<const PdfString&> text)
+{
+    if (text.has_value())
+        GetDictionary().AddKey("AC", *text);
+    else
+        GetDictionary().RemoveKey("AC");
+}
+
+nullable<const PdfString&> PdfAppearanceCharacteristics::GetAlternateCaption() const
+{
+    auto obj = GetDictionary().FindKeyParent("AC");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
+        return { };
+
+    return *str;
+}
+
+void PdfAppearanceCharacteristics::SetCaption(nullable<const PdfString&> text)
+{
+    if (text.has_value())
+        GetDictionary().AddKey("CA", *text);
+    else
+        GetDictionary().RemoveKey("CA");
+}
+
+nullable<const PdfString&> PdfAppearanceCharacteristics::GetCaption() const
+{
+    auto obj = GetDictionary().FindKeyParent("CA");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
+        return { };
+
+    return *str;
+}

@@ -43,7 +43,7 @@ PdfSignature::PdfSignature(PdfObject& obj, PdfAcroForm* acroform) :
 void PdfSignature::SetAppearanceStream(PdfXObjectForm& obj, PdfAppearanceType appearance, const PdfName& state)
 {
     GetWidget()->SetAppearanceStream(obj, appearance, state);
-    (void)this->GetOrCreateAppearanceCharacteristics();
+    (void)this->GetWidget()->GetOrCreateAppearanceCharacteristics();
 }
 
 void PdfSignature::init(PdfAcroForm& acroForm)
@@ -54,29 +54,43 @@ void PdfSignature::init(PdfAcroForm& acroForm)
     acroForm.GetObject().GetDictionary().AddKey("SigFlags", (int64_t)3);
 }
 
-void PdfSignature::SetSignerName(const PdfString& text)
+void PdfSignature::SetSignerName(nullable<const PdfString&> text)
 {
     if (m_ValueObj == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    m_ValueObj->GetDictionary().AddKey("Name", text);
+    if (text.has_value())
+        m_ValueObj->GetDictionary().AddKey("Name", *text);
+    else
+        m_ValueObj->GetDictionary().RemoveKey("Name");
 }
 
-void PdfSignature::SetSignatureReason(const PdfString& text)
+void PdfSignature::SetSignatureReason(nullable<const PdfString&> text)
 {
     if (m_ValueObj == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    m_ValueObj->GetDictionary().AddKey("Reason", text);
+    if (text.has_value())
+        m_ValueObj->GetDictionary().AddKey("Reason", *text);
+    else
+        m_ValueObj->GetDictionary().RemoveKey("Reason");
 }
 
-void PdfSignature::SetSignatureDate(const PdfDate& sigDate)
+void PdfSignature::SetSignatureDate(nullable<const PdfDate&> sigDate)
 {
     if (m_ValueObj == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    PdfString dateStr = sigDate.ToString();
-    m_ValueObj->GetDictionary().AddKey("M", dateStr);
+
+    if (sigDate.has_value())
+    {
+        PdfString dateStr = sigDate->ToString();
+        m_ValueObj->GetDictionary().AddKey("M", dateStr);
+    }
+    else
+    {
+        m_ValueObj->GetDictionary().RemoveKey("M");
+    }
 }
 
 void PdfSignature::PrepareForSigning(const string_view& filter,
@@ -99,37 +113,35 @@ void PdfSignature::PrepareForSigning(const string_view& filter,
     m_ValueObj->GetDictionary().AddKey("ByteRange", PdfVariant(std::move(byteRangeData)));
 }
 
-void PdfSignature::SetSignatureLocation(const PdfString& text)
+void PdfSignature::SetSignatureLocation(nullable<const PdfString&> text)
 {
     if (m_ValueObj == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    m_ValueObj->GetDictionary().AddKey("Location", text);
+    if (text.has_value())
+        m_ValueObj->GetDictionary().AddKey("Location", *text);
+    else
+        m_ValueObj->GetDictionary().RemoveKey("Location");
 }
 
-void PdfSignature::SetSignatureCreator(const PdfName& creator)
+void PdfSignature::SetSignatureCreator(nullable<const PdfString&> creator)
 {
     if (m_ValueObj == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    if (m_ValueObj->GetDictionary().HasKey("Prop_Build"))
+    // TODO: Make it less brutal, preserving /Prop_Build
+    if (creator.has_value())
     {
+        m_ValueObj->GetDictionary().AddKey("Prop_Build", PdfDictionary());
         PdfObject* propBuild = m_ValueObj->GetDictionary().GetKey("Prop_Build");
-        if (propBuild->GetDictionary().HasKey("App"))
-        {
-            PdfObject* app = propBuild->GetDictionary().GetKey("App");
-            app->GetDictionary().RemoveKey("Name");
-            propBuild->GetDictionary().RemoveKey("App");
-        }
-
+        propBuild->GetDictionary().AddKey("App", PdfDictionary());
+        PdfObject* app = propBuild->GetDictionary().GetKey("App");
+        app->GetDictionary().AddKey("Name", *creator);
+    }
+    else
+    {
         m_ValueObj->GetDictionary().RemoveKey("Prop_Build");
     }
-
-    m_ValueObj->GetDictionary().AddKey("Prop_Build", PdfDictionary());
-    PdfObject* propBuild = m_ValueObj->GetDictionary().GetKey("Prop_Build");
-    propBuild->GetDictionary().AddKey("App", PdfDictionary());
-    PdfObject* app = propBuild->GetDictionary().GetKey("App");
-    app->GetDictionary().AddKey("Name", creator);
 }
 
 void PdfSignature::AddCertificationReference(PdfCertPermission perm)
@@ -158,36 +170,59 @@ void PdfSignature::AddCertificationReference(PdfCertPermission perm)
     m_ValueObj->GetDictionary().AddKey("Reference", PdfVariant(refers));
 }
 
-const PdfObject* PdfSignature::GetSignatureReason() const
+nullable<const PdfString&> PdfSignature::GetSignerName() const
 {
     if (m_ValueObj == nullptr)
         return nullptr;
 
-    return m_ValueObj->GetDictionary().GetKey("Reason");
+    auto obj = m_ValueObj->GetDictionary().FindKey("Name");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
+        return nullptr;
+
+    return *str;
 }
 
-const PdfObject* PdfSignature::GetSignatureLocation() const
+nullable<const PdfString&> PdfSignature::GetSignatureReason() const
 {
     if (m_ValueObj == nullptr)
         return nullptr;
 
-    return m_ValueObj->GetDictionary().GetKey("Location");
+    auto obj = m_ValueObj->GetDictionary().FindKey("Reason");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
+        return nullptr;
+
+    return *str;
 }
 
-const PdfObject* PdfSignature::GetSignatureDate() const
+nullable<const PdfString&> PdfSignature::GetSignatureLocation() const
 {
     if (m_ValueObj == nullptr)
         return nullptr;
 
-    return m_ValueObj->GetDictionary().GetKey("M");
+    auto obj = m_ValueObj->GetDictionary().FindKey("Location");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
+        return nullptr;
+
+    return *str;
 }
 
-const PdfObject* PdfSignature::GetSignerName() const
+nullable<PdfDate> PdfSignature::GetSignatureDate() const
 {
     if (m_ValueObj == nullptr)
         return nullptr;
 
-    return m_ValueObj->GetDictionary().GetKey("Name");
+    auto obj = m_ValueObj->GetDictionary().FindKey("M");
+    PdfDate date;
+    const PdfString* str;
+    if (obj == nullptr
+        || !obj->TryGetString(str)
+        || !PdfDate::TryParse(str->GetString(), date))
+        return nullptr;
+
+    return date;
 }
 
 PdfObject* PdfSignature::getValueObject() const

@@ -1,4 +1,5 @@
 ## Version 0.10.0
+- PdfAnnotation/PdfField API review
 - PdfDate: Introduced PdfDate::LocalNow() and PdfDate::UtcNow()
   and default constructor is epoch time instead
 - Renamed PdfDocument::GetNameTree() -> GetNames()

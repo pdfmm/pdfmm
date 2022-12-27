@@ -8,15 +8,12 @@
 
 #include "PdfDeclarations.h"
 
-#include "PdfArray.h"
 #include "PdfRect.h"
 #include "PdfElement.h"
 
 namespace mm {
 
-class PdfAction;
 class PdfPage;
-class PdfRect;
 
 enum class PdfDestinationFit
 {

@@ -10,12 +10,17 @@
 #include "PdfAnnotationActionBase.h"
 #include "PdfFileSpec.h"
 #include "PdfDestination.h"
+#include "PdfDictionary.h"
 
 namespace mm {
 
     template <typename T>
     class PdfQuadPointsProvider
     {
+        friend class PdfAnnotationLink;
+        friend class PdfAnnotationTextMarkupBase;
+        friend class PdfAnnotationRedact;
+
     public:
         /** Get the quad points associated with the annotation (if appropriate).
          *  This array is used in text markup annotations to describe the
@@ -229,7 +234,9 @@ namespace mm {
         PdfAnnotationPrinterMark(PdfObject& obj);
     };
 
-    class PDFMM_API PdfAnnotationScreen : public PdfAnnotationActionBase
+    class PDFMM_API PdfAnnotationScreen :
+        public PdfAnnotationActionBase,
+        public PdfAppearanceCharacteristicsProvider<PdfAnnotationScreen>
     {
         friend class PdfAnnotation;
     private:

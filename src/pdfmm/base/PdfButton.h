@@ -45,12 +45,12 @@ namespace mm
          *
          *  \param text the caption
          */
-        void SetCaption(const PdfString& text);
+        void SetCaption(nullable<const PdfString&> text);
 
         /**
          *  \returns the caption of this button
          */
-        nullable<PdfString> GetCaption() const;
+        nullable<const PdfString&> GetCaption() const;
     };
 
     class PDFMM_API PdfToggleButton : public PdfButton

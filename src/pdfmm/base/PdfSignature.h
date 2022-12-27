@@ -77,29 +77,29 @@ public:
     *
     *  \param text the signer name
     */
-    void SetSignerName(const PdfString& text);
+    void SetSignerName(nullable<const PdfString&> text);
 
     /** Set reason of the signature
      *
      *  \param text the reason of signature
      */
-    void SetSignatureReason(const PdfString& text);
+    void SetSignatureReason(nullable<const PdfString&> text);
 
     /** Set location of the signature
      *
      *  \param text the location of signature
      */
-    void SetSignatureLocation(const PdfString& text);
+    void SetSignatureLocation(nullable<const PdfString&> text);
 
     /** Set the creator of the signature
      *
      *  \param creator the creator of the signature
      */
-    void SetSignatureCreator(const PdfName& creator);
+    void SetSignatureCreator(nullable<const PdfString&> creator);
 
     /** Date of signature
      */
-    void SetSignatureDate(const PdfDate& sigDate);
+    void SetSignatureDate(nullable<const PdfDate&> sigDate);
 
     /** Add certification dictionaries and references to document catalog.
      *
@@ -111,25 +111,25 @@ public:
     *
     *  \returns the found signer object
     */
-    const PdfObject* GetSignerName() const;
+    nullable<const PdfString&> GetSignerName() const;
 
     /** Get the reason of the signature
     *
     *  \returns the found reason object
     */
-    const PdfObject* GetSignatureReason() const;
+    nullable<const PdfString&> GetSignatureReason() const;
 
     /** Get the location of the signature
     *
     *  \returns the found location object
     */
-    const PdfObject* GetSignatureLocation() const;
+    nullable<const PdfString&> GetSignatureLocation() const;
 
     /** Get the date of the signature
     *
     *  \returns the found date object
     */
-    const PdfObject* GetSignatureDate() const;
+    nullable<PdfDate> GetSignatureDate() const;
 
     /** Ensures that the signature field has set a signature object.
      *  The function does nothing, if the signature object is already

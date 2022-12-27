@@ -79,40 +79,46 @@ namespace COMMON_NAMESPACE
 
     public:
         template <typename T2>
-        friend bool operator==(const nullable<T2>& op1, const nullable<T2>& op2);
+        friend bool operator==(const nullable<T2>& lhs, const nullable<T2>& rhs);
 
         template <typename T2>
-        friend bool operator!=(const nullable<T2>& op1, const nullable<T2>& op2);
+        friend bool operator!=(const nullable<T2>& lhs, const nullable<T2>& rhs);
 
         template <typename T2>
-        friend bool operator==(const nullable<T2>& op1, const nullable<const T2&>& op2);
+        friend bool operator==(const nullable<std::decay_t<T2>>& lhs, const nullable<T2&>& rhs);
 
         template <typename T2>
-        friend bool operator!=(const nullable<T2>& op1, const nullable<const T2&>& op2);
+        friend bool operator!=(const nullable<std::decay_t<T2>>& lhs, const nullable<T2&>& rhs);
 
         template <typename T2>
-        friend bool operator==(const nullable<T2>& op, const T2& value);
+        friend bool operator==(const nullable<T2&>& lhs, const nullable<std::decay_t<T2>>& rhs);
 
         template <typename T2>
-        friend bool operator==(const T2& value, const nullable<T2>& op);
+        friend bool operator!=(const nullable<T2&>& lhs, const nullable<std::decay_t<T2>>& rhs);
 
         template <typename T2>
-        friend bool operator==(const nullable<T2>& op, std::nullptr_t);
+        friend bool operator==(const nullable<T2>& lhs, const T2& rhs);
 
         template <typename T2>
-        friend bool operator!=(const nullable<T2>& op, const T2& value);
+        friend bool operator==(const T2& lhs, const nullable<T2>& rhs);
 
         template <typename T2>
-        friend bool operator!=(const T2& value, const nullable<T2>& op);
+        friend bool operator==(const nullable<T2>& lhs, std::nullptr_t);
 
         template <typename T2>
-        friend bool operator==(std::nullptr_t, const nullable<T2>& op);
+        friend bool operator!=(const nullable<T2>& lhs, const T2& rhs);
 
         template <typename T2>
-        friend bool operator!=(const nullable<T2>& op, std::nullptr_t);
+        friend bool operator!=(const T2& lhs, const nullable<T2>& rhs);
 
         template <typename T2>
-        friend bool operator!=(std::nullptr_t, const nullable<T2>& op);
+        friend bool operator==(std::nullptr_t, const nullable<T2>& rhs);
+
+        template <typename T2>
+        friend bool operator!=(const nullable<T2>& lhs, std::nullptr_t);
+
+        template <typename T2>
+        friend bool operator!=(std::nullptr_t, const nullable<T2>& rhs);
 
     private:
         bool m_hasValue;
@@ -161,32 +167,47 @@ namespace COMMON_NAMESPACE
         T& operator*() { return *m_value; }
 
     public:
-        // NOTE: We don't provide comparison against value since
-        // it would be ambiguous
+        template <typename T2>
+        friend bool operator==(const nullable<std::decay_t<T2>>& lhs, const nullable<T2&>& rhs);
 
         template <typename T2>
-        friend bool operator==(const nullable<T2>& op1, const nullable<T2>& op2);
+        friend bool operator!=(const nullable<std::decay_t<T2>>& lhs, const nullable<T2&>& rhs);
 
         template <typename T2>
-        friend bool operator!=(const nullable<T2>& op1, const nullable<T2>& op2);
+        friend bool operator==(const nullable<T2&>& lhs, const nullable<std::decay_t<T2>>& rhs);
 
         template <typename T2>
-        friend bool operator==(const nullable<T2>& op1, const nullable<const T2&>& op2);
+        friend bool operator!=(const nullable<T2&>& lhs, const nullable<std::decay_t<T2>>& rhs);
 
         template <typename T2>
-        friend bool operator!=(const nullable<T2>& op1, const nullable<const T2&>& op2);
+        friend bool operator==(const nullable<T2&>& lhs, const nullable<T2&>& rhs);
 
         template <typename T2>
-        friend bool operator==(const nullable<T2>& op, std::nullptr_t);
+        friend bool operator!=(const nullable<T2&>& lhs, const nullable<T2&>& rhs);
 
         template <typename T2>
-        friend bool operator==(std::nullptr_t, const nullable<T2>& op);
+        friend bool operator==(const nullable<T2&>& lhs, const std::decay_t<T2>& rhs);
 
         template <typename T2>
-        friend bool operator!=(const nullable<T2>& op, std::nullptr_t);
+        friend bool operator!=(const nullable<T2&>& lhs, const std::decay_t<T2>& rhs);
 
         template <typename T2>
-        friend bool operator!=(std::nullptr_t, const nullable<T2>& op);
+        friend bool operator==(const std::decay_t<T2>& lhs, const nullable<T2&>& rhs);
+
+        template <typename T2>
+        friend bool operator!=(const std::decay_t<T2>& lhs, const nullable<T2&>& rhs);
+
+        template <typename T2>
+        friend bool operator==(const nullable<T2>& lhs, std::nullptr_t);
+
+        template <typename T2>
+        friend bool operator==(std::nullptr_t, const nullable<T2>& rhs);
+
+        template <typename T2>
+        friend bool operator!=(const nullable<T2>& lhs, std::nullptr_t);
+
+        template <typename T2>
+        friend bool operator!=(std::nullptr_t, const nullable<T2>& rhs);
 
     private:
         bool m_hasValue;
@@ -194,111 +215,195 @@ namespace COMMON_NAMESPACE
     };
 
     template <typename T2>
-    bool operator==(const nullable<T2>& n1, const nullable<T2>& n2)
+    bool operator==(const nullable<T2>& lhs, const nullable<T2>& rhs)
     {
-        if (n1.m_hasValue != n2.m_hasValue)
+        if (lhs.m_hasValue != rhs.m_hasValue)
             return false;
 
-        if (n1.m_hasValue)
-            return n1.m_value == n2.m_value;
+        if (lhs.m_hasValue)
+            return lhs.m_value == rhs.m_value;
         else
             return true;
     }
 
     template <typename T2>
-    bool operator!=(const nullable<T2>& op1, const nullable<T2>& op2)
+    bool operator!=(const nullable<T2>& lhs, const nullable<T2>& rhs)
     {
-        if (op1.m_hasValue != op2.m_hasValue)
+        if (lhs.m_hasValue != rhs.m_hasValue)
             return true;
 
-        if (op1.m_hasValue)
-            return op1.m_value != op2.m_value;
+        if (lhs.m_hasValue)
+            return lhs.m_value != rhs.m_value;
         else
             return false;
     }
 
     template <typename T2>
-    bool operator==(const nullable<T2>& op1, const nullable<const T2&>& op2)
+    bool operator==(const nullable<std::decay_t<T2>>& lhs, const nullable<T2&>& rhs)
     {
-        if (op1.m_hasValue != op2.m_hasValue)
+        if (lhs.m_hasValue != rhs.m_hasValue)
             return true;
 
-        if (op1.m_hasValue)
-            return op1.m_value != *op2.m_value;
+        if (lhs.m_hasValue)
+            return lhs.m_value != *rhs.m_value;
         else
             return false;
     }
 
     template <typename T2>
-    bool operator!=(const nullable<T2>& op1, const nullable<const T2&>& op2)
+    bool operator!=(const nullable<std::decay_t<T2>>& lhs, const nullable<T2&>& rhs)
     {
-        if (op1.m_hasValue != op2.m_hasValue)
+        if (lhs.m_hasValue != rhs.m_hasValue)
             return true;
 
-        if (op1.m_hasValue)
-            return op1.m_value != *op2.m_value;
+        if (lhs.m_hasValue)
+            return lhs.m_value != *rhs.m_value;
         else
             return false;
     }
 
     template <typename T2>
-    bool operator==(const nullable<T2>& n, const T2& v)
+    bool operator==(const nullable<T2&>& lhs, const nullable<std::decay_t<T2>>& rhs)
     {
-        if (!n.m_hasValue)
+        if (lhs.m_hasValue != rhs.m_hasValue)
             return false;
 
-        return n.m_value == v;
+        if (lhs.m_hasValue)
+            return *lhs.m_value == rhs.m_value;
+        else
+            return true;
     }
 
     template <typename T2>
-    bool operator!=(const nullable<T2>& n, const T2& v)
+    bool operator!=(const nullable<T2&>& lhs, const nullable<std::decay_t<T2>>& rhs)
     {
-        if (!n.m_hasValue)
+        if (lhs.m_hasValue != rhs.m_hasValue)
             return true;
 
-        return n.m_value != v;
+        if (lhs.m_hasValue)
+            return *lhs.m_value != rhs.m_value;
+        else
+            return false;
     }
 
     template <typename T2>
-    bool operator==(const T2& v, const nullable<T2>& n)
+    bool operator==(const nullable<T2&>& lhs, const nullable<T2&>& rhs)
     {
-        if (!n.m_hasValue)
+        if (lhs.m_hasValue != rhs.m_hasValue)
             return false;
 
-        return n.m_value == v;
+        if (lhs.m_hasValue)
+            return *lhs.m_value == *rhs.m_value;
+        else
+            return true;
     }
 
     template <typename T2>
-    bool operator!=(const T2& v, const nullable<T2>& n)
+    bool operator!=(const nullable<T2&>& lhs, const nullable<T2&>& rhs)
     {
-        if (!n.m_hasValue)
+        if (lhs.m_hasValue != rhs.m_hasValue)
+            return true;
+
+        if (lhs.m_hasValue)
+            return *lhs.m_value != *rhs.m_value;
+        else
+            return false;
+    }
+
+    template <typename T2>
+    bool operator==(const nullable<T2&>& lhs, const std::decay_t<T2>& rhs)
+    {
+        if (!lhs.m_hasValue)
             return false;
 
-        return n.m_value != v;
+        return *lhs.m_value == rhs;
     }
 
     template <typename T2>
-    bool operator==(const nullable<T2>& n, std::nullptr_t)
+    bool operator!=(const nullable<T2&>& lhs, const std::decay_t<T2>& rhs)
     {
-        return !n.m_hasValue;
+        if (!lhs.m_hasValue)
+            return true;
+
+        return *lhs.m_value != rhs;
     }
 
     template <typename T2>
-    bool operator!=(const nullable<T2>& n, std::nullptr_t)
+    bool operator==(const std::decay_t<T2>& lhs, const nullable<T2&>& rhs)
     {
-        return n.m_hasValue;
+        if (!rhs.m_hasValue)
+            return false;
+
+        return lhs == *rhs.m_value;
     }
 
     template <typename T2>
-    bool operator==(std::nullptr_t, const nullable<T2>& n)
+    bool operator!=(const std::decay_t<T2>& lhs, const nullable<T2&>& rhs)
     {
-        return !n.m_hasValue;
+        if (!rhs.m_hasValue)
+            return true;
+
+        return lhs != *rhs.m_value;
     }
 
     template <typename T2>
-    bool operator!=(std::nullptr_t, const nullable<T2>& n)
+    bool operator==(const nullable<T2>& lhs, const T2& rhs)
     {
-        return n.m_hasValue;
+        if (!lhs.m_hasValue)
+            return false;
+
+        return lhs.m_value == rhs;
+    }
+
+    template <typename T2>
+    bool operator!=(const nullable<T2>& lhs, const T2& rhs)
+    {
+        if (!lhs.m_hasValue)
+            return true;
+
+        return lhs.m_value != rhs;
+    }
+
+    template <typename T2>
+    bool operator==(const T2& lhs, const nullable<T2>& rhs)
+    {
+        if (!rhs.m_hasValue)
+            return false;
+
+        return lhs == rhs.m_value;
+    }
+
+    template <typename T2>
+    bool operator!=(const T2& lhs, const nullable<T2>& rhs)
+    {
+        if (!rhs.m_hasValue)
+            return true;
+
+        return lhs != rhs.m_value;
+    }
+
+    template <typename T2>
+    bool operator==(const nullable<T2>& lhs, std::nullptr_t)
+    {
+        return !lhs.m_hasValue;
+    }
+
+    template <typename T2>
+    bool operator!=(const nullable<T2>& lhs, std::nullptr_t)
+    {
+        return lhs.m_hasValue;
+    }
+
+    template <typename T2>
+    bool operator==(std::nullptr_t, const nullable<T2>& rhs)
+    {
+        return !rhs.m_hasValue;
+    }
+
+    template <typename T2>
+    bool operator!=(std::nullptr_t, const nullable<T2>& rhs)
+    {
+        return rhs.m_hasValue;
     }
 }
 

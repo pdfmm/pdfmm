@@ -81,68 +81,6 @@ public:
      */
     PdfHighlightingMode GetHighlightingMode() const;
 
-    /**
-     * Sets the border color of the field to be transparent
-     */
-    void SetBorderColorTransparent();
-
-    /**
-     * Sets the border color of the field
-     *
-     * \param gray gray value of the color
-     */
-    void SetBorderColor(double gray);
-
-    /**
-     * Sets the border color of the field
-     *
-     * \param red red
-     * \param green green
-     * \param blue blue
-     */
-    void SetBorderColor(double red, double green, double blue);
-
-    /**
-     * Sets the border color of the field
-     *
-     * \param cyan cyan
-     * \param magenta magenta
-     * \param yellow yellow
-     * \param black black
-     */
-    void SetBorderColor(double cyan, double magenta, double yellow, double black);
-
-    /**
-     * Sets the background color of the field to be transparent
-     */
-    void SetBackgroundColorTransparent();
-
-    /**
-     * Sets the background color of the field
-     *
-     * \param gray gray value of the color
-     */
-    void SetBackgroundColor(double gray);
-
-    /**
-     * Sets the background color of the field
-     *
-     * \param red red
-     * \param green green
-     * \param blue blue
-     */
-    void SetBackgroundColor(double red, double green, double blue);
-
-    /**
-     * Sets the background color of the field
-     *
-     * \param cyan cyan
-     * \param magenta magenta
-     * \param yellow yellow
-     * \param black black
-     */
-    void SetBackgroundColor(double cyan, double magenta, double yellow, double black);
-
     /** Sets the field name of this PdfField
      *
      *  PdfFields require a field name to work correctly in acrobat reader!
@@ -150,7 +88,7 @@ public:
      *
      *  \param name the field name of this pdf field
      */
-    void SetName(const PdfString& name);
+    void SetName(nullable<const PdfString&> name);
 
     /** Returns signature object for this signature field.
      *  It can be nullptr, when the signature field was created
@@ -163,11 +101,11 @@ public:
 
     /** \returns the field name of this PdfField
      */
-    nullable<PdfString> GetName() const;
+    nullable<const PdfString&> GetName() const;
 
     /** \returns the field name of this PdfField at this level of the hierarchy
      */
-    nullable<PdfString> GetNameRaw() const;
+    nullable<const PdfString&> GetNameRaw() const;
 
     /** \returns the parents qualified name of this PdfField
      *
@@ -182,11 +120,11 @@ public:
      *
      * \param name a name that can be displayed to the user
      */
-    void SetAlternateName(const PdfString& name);
+    void SetAlternateName(nullable<const PdfString&> name);
 
     /** \returns the fields alternate name
      */
-    nullable<PdfString> GetAlternateName() const;
+    nullable<const PdfString&> GetAlternateName() const;
 
     /**
      * Sets the fields mapping name which is used when exporting
@@ -194,11 +132,11 @@ public:
      *
      * \param name the mapping name of this PdfField
      */
-    void SetMappingName(const PdfString& name);
+    void SetMappingName(nullable<const PdfString&> name);
 
     /** \returns the mapping name of this field
      */
-    nullable<PdfString> GetMappingName() const;
+    nullable<const PdfString&> GetMappingName() const;
 
     /** Set this field to be readonly.
      *  I.e. it will not interact with the user
@@ -306,17 +244,6 @@ protected:
     *  \returns true if flag is found
     */
     static bool GetFieldFlags(const PdfObject& obj, int64_t& value);
-
-    /**
-     * \param create create the dictionary if it does not exist
-     *
-     * \returns a pointer to the appearance characteristics dictionary
-     *          of this object or nullptr if it does not exists.
-     */
-    PdfObject& GetOrCreateAppearanceCharacteristics();
-
-    PdfObject* GetAppearanceCharacteristics();
-    const PdfObject* GetAppearanceCharacteristics() const;
 
     PdfObject* getValueObject() const;
 

@@ -45,12 +45,12 @@ namespace mm
          *
          *  \param text the text of this field
          */
-        void SetText(const PdfString& text);
+        void SetText(nullable<const PdfString&> text);
 
         /**
          *  \returns the text contents of this text field
          */
-        PdfString GetText() const;
+        nullable<const PdfString&> GetText() const;
 
         /** Sets the max length in characters of this textfield
          *  \param maxLen the max length of this textfields in characters

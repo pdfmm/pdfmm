@@ -31,48 +31,55 @@ PdfTextBox::PdfTextBox(PdfObject& obj, PdfAcroForm* acroform)
 
 void PdfTextBox::init()
 {
-    if (!GetObject().GetDictionary().HasKey("DS"))
-        GetObject().GetDictionary().AddKey("DS", PdfString("font: 12pt Helvetica"));
+    if (!GetDictionary().HasKey("DS"))
+        GetDictionary().AddKey("DS", PdfString("font: 12pt Helvetica"));
 }
 
-void PdfTextBox::SetText(const PdfString& text)
+void PdfTextBox::SetText(nullable<const PdfString&> text)
 {
     AssertTerminalField();
-    PdfName key = this->IsRichText() ? PdfName("RV") : PdfName("V");
+    string_view key = this->IsRichText() ? "RV" : "V";
+    if (text.has_value())
+    {
 
-    // if text is longer than maxlen, truncate it
-    int64_t maxLength = this->GetMaxLen();
-    if (maxLength != -1 && text.GetString().length() > (unsigned)maxLength)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Unable to set text larger MaxLen");
+        // if text is longer than maxlen, truncate it
+        int64_t maxLength = this->GetMaxLen();
+        if (maxLength != -1 && text->GetString().length() > (unsigned)maxLength)
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Unable to set text larger MaxLen");
 
-    GetObject().GetDictionary().AddKey(key, text);
+        GetDictionary().AddKey(key, *text);
+    }
+    else
+    {
+        GetDictionary().RemoveKey(key);
+    }
 }
 
-PdfString PdfTextBox::GetText() const
+nullable<const PdfString&> PdfTextBox::GetText() const
 {
     AssertTerminalField();
-    PdfName key = this->IsRichText() ? PdfName("RV") : PdfName("V");
-    PdfString str;
+    string_view key = this->IsRichText() ? "RV" : "V";
+    auto obj = GetDictionary().FindKeyParent(key);
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
+        return { };
 
-    auto found = GetObject().GetDictionary().FindKeyParent(key);
-    if (found == nullptr)
-        return str;
-
-    return found->GetString();
+    return *str;
 }
 
 void PdfTextBox::SetMaxLen(int64_t maxLen)
 {
-    GetObject().GetDictionary().AddKey("MaxLen", maxLen);
+    GetDictionary().AddKey("MaxLen", maxLen);
 }
 
 int64_t PdfTextBox::GetMaxLen() const
 {
-    auto found = GetObject().GetDictionary().FindKeyParent("MaxLen");
-    if (found == nullptr)
+    int64_t ret;
+    auto found = GetDictionary().FindKeyParent("MaxLen");
+    if (found == nullptr || found->TryGetNumber(ret))
         return -1;
 
-    return found->GetNumber();
+    return ret;
 }
 
 void PdfTextBox::SetMultiLine(bool multiLine)

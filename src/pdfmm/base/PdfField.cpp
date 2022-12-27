@@ -489,25 +489,6 @@ void PdfField::init()
     }
 }
 
-PdfObject& PdfField::GetOrCreateAppearanceCharacteristics()
-{
-    auto mkObj = GetDictionary().FindKey("MK");
-    if (mkObj != nullptr)
-        return *mkObj;
-
-    return GetDictionary().AddKey("MK", PdfDictionary());
-}
-
-PdfObject* PdfField::GetAppearanceCharacteristics()
-{
-    return GetDictionary().FindKey("MK");
-}
-
-const PdfObject* PdfField::GetAppearanceCharacteristics() const
-{
-    return const_cast<PdfField&>(*this).GetAppearanceCharacteristics();
-}
-
 PdfObject* PdfField::getValueObject() const
 {
     return const_cast<PdfField&>(*this).GetDictionary().FindKey("V");
@@ -631,90 +612,17 @@ PdfHighlightingMode PdfField::GetHighlightingMode() const
     return mode;
 }
 
-void PdfField::SetBorderColorTransparent()
+void PdfField::SetName(nullable<const PdfString&> name)
 {
-    PdfArray array;
-
-    auto& mk = this->GetOrCreateAppearanceCharacteristics();
-    mk.GetDictionary().AddKey("BC", array);
-}
-
-void PdfField::SetBorderColor(double gray)
-{
-    PdfArray array;
-    array.Add(gray);
-
-    auto& mk = this->GetOrCreateAppearanceCharacteristics();
-    mk.GetDictionary().AddKey("BC", array);
-}
-
-void PdfField::SetBorderColor(double red, double green, double blue)
-{
-    PdfArray array;
-    array.Add(red);
-    array.Add(green);
-    array.Add(blue);
-
-    auto& mk = this->GetOrCreateAppearanceCharacteristics();
-    mk.GetDictionary().AddKey("BC", array);
-}
-
-void PdfField::SetBorderColor(double cyan, double magenta, double yellow, double black)
-{
-    PdfArray array;
-    array.Add(cyan);
-    array.Add(magenta);
-    array.Add(yellow);
-    array.Add(black);
-
-    auto& mk = this->GetOrCreateAppearanceCharacteristics();
-    mk.GetDictionary().AddKey("BC", array);
-}
-
-void PdfField::SetBackgroundColorTransparent()
-{
-    PdfArray array;
-
-    auto& mk = this->GetOrCreateAppearanceCharacteristics();
-    mk.GetDictionary().AddKey("BG", array);
-}
-
-void PdfField::SetBackgroundColor(double gray)
-{
-    PdfArray array;
-    array.Add(gray);
-
-    auto& mk = this->GetOrCreateAppearanceCharacteristics();
-    mk.GetDictionary().AddKey("BG", array);
-}
-
-void PdfField::SetBackgroundColor(double red, double green, double blue)
-{
-    PdfArray array;
-    array.Add(red);
-    array.Add(green);
-    array.Add(blue);
-
-    auto& mk = this->GetOrCreateAppearanceCharacteristics();
-    mk.GetDictionary().AddKey("BG", array);
-}
-
-void PdfField::SetBackgroundColor(double cyan, double magenta, double yellow, double black)
-{
-    PdfArray array;
-    array.Add(cyan);
-    array.Add(magenta);
-    array.Add(yellow);
-    array.Add(black);
-
-    auto& mk = this->GetOrCreateAppearanceCharacteristics();
-    mk.GetDictionary().AddKey("BG", array);
-}
-
-void PdfField::SetName(const PdfString& name)
-{
-    CHECK_FIELD_NAME(name.GetString());
-    setName(name);
+    if (name.has_value())
+    {
+        CHECK_FIELD_NAME(name->GetString());
+        setName(*name);
+    }
+    else
+    {
+        GetDictionary().RemoveKey("T");
+    }
 }
 
 void PdfField::setName(const PdfString& name)
@@ -732,22 +640,24 @@ const PdfObject* PdfField::GetValueObject() const
     return getValueObject();
 }
 
-nullable<PdfString> PdfField::GetName() const
+nullable<const PdfString&> PdfField::GetName() const
 {
-    auto name = GetDictionary().FindKeyParent("T");
-    if (name == nullptr)
+    auto obj = GetDictionary().FindKeyParent("T");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
         return { };
 
-    return name->GetString();
+    return *str;
 }
 
-nullable<PdfString> PdfField::GetNameRaw() const
+nullable<const PdfString&> PdfField::GetNameRaw() const
 {
-    auto name = GetDictionary().GetKey("T");
-    if (name == nullptr)
+    auto obj = GetDictionary().GetKey("T");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
         return { };
 
-    return name->GetString();
+    return *str;
 }
 
 string PdfField::GetFullName(bool escapePartialNames) const
@@ -757,30 +667,40 @@ string PdfField::GetFullName(bool escapePartialNames) const
     return fullName;
 }
 
-void PdfField::SetAlternateName(const PdfString& name)
+void PdfField::SetAlternateName(nullable<const PdfString&> name)
 {
-    GetDictionary().AddKey("TU", name);
+    if (name.has_value())
+        GetDictionary().AddKey("TU", *name);
+    else
+        GetDictionary().RemoveKey("TU");
 }
 
-nullable<PdfString> PdfField::GetAlternateName() const
+nullable<const PdfString&> PdfField::GetAlternateName() const
 {
-    if (GetDictionary().HasKey("TU"))
-        return GetDictionary().MustFindKey("TU").GetString();
+    auto obj = GetDictionary().FindKeyParent("TU");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
+        return { };
 
-    return { };
+    return *str;
 }
 
-void PdfField::SetMappingName(const PdfString& name)
+void PdfField::SetMappingName(nullable<const PdfString&> name)
 {
-    GetDictionary().AddKey("TM", name);
+    if (name.has_value())
+        GetDictionary().AddKey("TM", *name);
+    else
+        GetDictionary().RemoveKey("TM");
 }
 
-nullable<PdfString> PdfField::GetMappingName() const
+nullable<const PdfString&> PdfField::GetMappingName() const
 {
-    if (GetDictionary().HasKey("TM"))
-        return GetDictionary().MustFindKey("TM").GetString();
+    auto obj = GetDictionary().FindKeyParent("TM");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
+        return { };
 
-    return { };
+    return *str;
 }
 
 void PdfField::addAlternativeAction(const PdfName& name, const PdfAction& action)

@@ -13,7 +13,9 @@ namespace mm {
 
     class PdfField;
 
-    class PDFMM_API PdfAnnotationWidget : public PdfAnnotationActionBase
+    class PDFMM_API PdfAnnotationWidget :
+        public PdfAnnotationActionBase,
+        public PdfAppearanceCharacteristicsProvider<PdfAnnotationWidget>
     {
         friend class PdfAnnotation;
         friend class PdfField;

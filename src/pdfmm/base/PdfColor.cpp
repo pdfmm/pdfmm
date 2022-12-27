@@ -1,5 +1,6 @@
 /**
  * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2022 Francesco Pretto <ceztko@gmail.com>
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
@@ -300,20 +301,21 @@ inline void CheckDoubleRange(double val, double min, double max)
 }
 
 PdfColor::PdfColor() :
+    m_IsTransparent(false),
+    m_ColorSpace(PdfColorSpace::DeviceGray),
     m_Color{ },
     m_SeparationName(),
     m_SeparationDensity(0.0),
-    m_ColorSpace(PdfColorSpace::DeviceGray),
     m_AlternateColorSpace(PdfColorSpace::Unknown)
 {
-    m_Color.gray = 0;
 }
 
 PdfColor::PdfColor(double gray) :
+    m_IsTransparent(false),
+    m_ColorSpace(PdfColorSpace::DeviceGray),
     m_Color{ },
     m_SeparationName(),
     m_SeparationDensity(0.0),
-    m_ColorSpace(PdfColorSpace::DeviceGray),
     m_AlternateColorSpace(PdfColorSpace::Unknown)
 {
     CheckDoubleRange(gray, 0.0, 1.0);
@@ -321,10 +323,11 @@ PdfColor::PdfColor(double gray) :
 }
 
 PdfColor::PdfColor(double red, double green, double blue) :
+    m_IsTransparent(false),
+    m_ColorSpace(PdfColorSpace::DeviceRGB),
     m_Color{ },
     m_SeparationName(),
     m_SeparationDensity(0.0),
-    m_ColorSpace(PdfColorSpace::DeviceRGB),
     m_AlternateColorSpace(PdfColorSpace::Unknown)
 {
     CheckDoubleRange(red, 0.0, 1.0);
@@ -337,10 +340,11 @@ PdfColor::PdfColor(double red, double green, double blue) :
 }
 
 PdfColor::PdfColor(double cyan, double magenta, double yellow, double black) :
+    m_IsTransparent(false),
+    m_ColorSpace(PdfColorSpace::DeviceCMYK),
     m_Color{ },
     m_SeparationName(),
     m_SeparationDensity(0.0),
-    m_ColorSpace(PdfColorSpace::DeviceCMYK),
     m_AlternateColorSpace(PdfColorSpace::Unknown)
 {
     CheckDoubleRange(cyan, 0.0, 1.0);
@@ -354,12 +358,14 @@ PdfColor::PdfColor(double cyan, double magenta, double yellow, double black) :
     m_Color.cmyk[3] = black;
 }
 
-PdfColor::PdfColor(const Color& data, string separationName, double separationDensity,
-    PdfColorSpace colorSpace, PdfColorSpace alternateColorSpace) :
+PdfColor::PdfColor(bool isTransparent, PdfColorSpace colorSpace,
+        const Color& data, string separationName, double separationDensity,
+        PdfColorSpace alternateColorSpace) :
+    m_IsTransparent(isTransparent),
+    m_ColorSpace(colorSpace),
     m_Color(data),
     m_SeparationName(std::move(separationName)),
     m_SeparationDensity(separationDensity),
-    m_ColorSpace(colorSpace),
     m_AlternateColorSpace(alternateColorSpace)
 {
 }
@@ -374,7 +380,7 @@ PdfColor PdfColor::CreateCieLab(double cieL, double cieA, double cieB)
     color.lab[0] = cieL;
     color.lab[1] = cieA;
     color.lab[2] = cieB;
-    return PdfColor(color, string(), 0.0, PdfColorSpace::Lab, PdfColorSpace::Unknown);
+    return PdfColor(false, PdfColorSpace::Lab, color, string(), 0, PdfColorSpace::Unknown);
 }
 
 PdfColor PdfColor::CreateSeparation(const std::string_view& name, double density, const PdfColor& alternateColor)
@@ -423,7 +429,7 @@ PdfColor PdfColor::CreateSeparation(const std::string_view& name, double density
         }
     }
 
-    return PdfColor(color, (string)name, density, PdfColorSpace::Separation, alternateColor.GetColorSpace());
+    return PdfColor(false, PdfColorSpace::Separation, color, (string)name, density, alternateColor.GetColorSpace());
 }
 
 PdfColor PdfColor::CreateSeparationNone()
@@ -433,7 +439,7 @@ PdfColor PdfColor::CreateSeparationNone()
     color.cmyk[1] = 0.0;
     color.cmyk[2] = 0.0;
     color.cmyk[3] = 0.0;
-    return PdfColor(color, "None", 0.0, PdfColorSpace::Separation, PdfColorSpace::DeviceCMYK);
+    return PdfColor(false, PdfColorSpace::Separation, color, "None", 0, PdfColorSpace::DeviceCMYK);
 }
 
 PdfColor PdfColor::CreateSeparationAll()
@@ -443,7 +449,12 @@ PdfColor PdfColor::CreateSeparationAll()
     color.cmyk[1] = 1.0;
     color.cmyk[2] = 1.0;
     color.cmyk[3] = 1.0;
-    return PdfColor(color, "All", 1.0, PdfColorSpace::Separation, PdfColorSpace::DeviceCMYK);
+    return PdfColor(false, PdfColorSpace::Separation, color, "All", 1, PdfColorSpace::DeviceCMYK);
+}
+
+PdfColor PdfColor::CreateTransparent()
+{
+    return PdfColor(true, PdfColorSpace::Unknown, { }, { }, 0, PdfColorSpace::Unknown);
 }
 
 PdfColor PdfColor::ConvertToGrayScale() const
@@ -778,16 +789,74 @@ PdfColor PdfColor::FromString(const string_view& name)
     }
 }
 
+bool PdfColor::TryCreateFromObject(const PdfObject& obj, PdfColor& color)
+{
+    const PdfArray* arr;
+    if (!obj.TryGetArray(arr))
+        return false;
+
+    return TryCreateFromArray(*arr, color);
+}
+
+PdfColor PdfColor::FromObject(const PdfObject& obj)
+{
+    PdfColor ret;
+    if (!TryCreateFromObject(obj, ret))
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "PdfColor::FromArray supports only GrayScale, RGB and CMYK colors");
+
+    return ret;
+}
+
+bool PdfColor::TryCreateFromArray(const PdfArray& arr, PdfColor& color)
+{
+    if (arr.GetSize() == 0) // Transparent
+    {
+        color = CreateTransparent();
+    }
+    else if (arr.GetSize() == 1) // grayscale
+    {
+        double gray;
+        if (!arr[0].TryGetReal(gray))
+            return false;
+
+        color = PdfColor(gray);
+        return true;
+    }
+    else if (arr.GetSize() == 3) // RGB or spot
+    {
+        double red;
+        double green;
+        double blue;
+        if (!arr[0].TryGetReal(red) || !arr[1].TryGetReal(green) || !arr[2].TryGetReal(blue))
+            return false;
+
+        color = PdfColor(red, green, blue);
+        return true;
+    }
+    else if (arr.GetSize() == 4) // CMYK
+    {
+        double cyan;
+        double magenta;
+        double yellow;
+        double key;
+        if (!arr[0].TryGetReal(cyan) || !arr[1].TryGetReal(magenta) || !arr[2].TryGetReal(yellow) || !arr[3].TryGetReal(key))
+            return false;
+
+        color = PdfColor(cyan, magenta, yellow, key);
+        return true;
+    }
+
+    return false;
+}
+
+
 PdfColor PdfColor::FromArray(const PdfArray& arr)
 {
-    if (arr.GetSize() == 1) // grayscale
-        return PdfColor(arr[0].GetReal());
-    else if (arr.GetSize() == 3) // RGB or spot
-        return PdfColor(arr[0].GetReal(), arr[1].GetReal(), arr[2].GetReal());
-    else if (arr.GetSize() == 4) // CMYK
-        return PdfColor(arr[0].GetReal(), arr[1].GetReal(), arr[2].GetReal(), arr[3].GetReal());
+    PdfColor ret;
+    if (!TryCreateFromArray(arr, ret))
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "PdfColor::FromArray supports only GrayScale, RGB and CMYK colors");
 
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "PdfColor::FromArray supports only GrayScale, RGB and CMYK colors");
+    return ret;
 }
 
 PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
@@ -1056,9 +1125,7 @@ PdfColor PdfNamedColor::FromRGBString(const string_view& name)
         const unsigned G = (nameConverted & 0x0000FF00) >> 8;
         const unsigned B = (nameConverted & 0x000000FF);
 
-        return PdfColor(static_cast<double>(R) / 255.0,
-            static_cast<double>(G) / 255.0,
-            static_cast<double>(B) / 255.0);
+        return PdfColor(R / 255.0, G / 255.0, B / 255.0);
     }
     else
     {
@@ -1068,72 +1135,22 @@ PdfColor PdfNamedColor::FromRGBString(const string_view& name)
 
 bool PdfColor::operator==(const PdfColor& rhs) const
 {
-    if (m_ColorSpace == rhs.m_ColorSpace)
-    {
-        if (m_ColorSpace == PdfColorSpace::DeviceGray
-            && m_Color.gray == rhs.m_Color.gray)
-        {
-            return true;
-        }
-
-        if (m_ColorSpace == PdfColorSpace::DeviceRGB
-            && m_Color.rgb[0] == rhs.m_Color.rgb[0]
-            && m_Color.rgb[1] == rhs.m_Color.rgb[1]
-            && m_Color.rgb[2] == rhs.m_Color.rgb[2])
-        {
-            return true;
-        }
-
-        if (m_ColorSpace == PdfColorSpace::DeviceCMYK
-            && m_Color.cmyk[0] == rhs.m_Color.cmyk[0]
-            && m_Color.cmyk[1] == rhs.m_Color.cmyk[1]
-            && m_Color.cmyk[2] == rhs.m_Color.cmyk[2]
-            && m_Color.cmyk[3] == rhs.m_Color.cmyk[3])
-        {
-            return true;
-        }
-
-        if (m_ColorSpace == PdfColorSpace::Lab
-            && m_Color.lab[0] == rhs.m_Color.lab[0]
-            && m_Color.lab[1] == rhs.m_Color.lab[1]
-            && m_Color.lab[2] == rhs.m_Color.lab[2])
-        {
-            return true;
-        }
-
-        if (m_ColorSpace == PdfColorSpace::Separation
-            && m_SeparationDensity == rhs.m_SeparationDensity
-            && m_SeparationName == rhs.m_SeparationName
-            && m_AlternateColorSpace == rhs.m_AlternateColorSpace
-            && ((m_AlternateColorSpace == PdfColorSpace::DeviceGray
-                && m_Color.gray == rhs.m_Color.gray)
-                || (m_AlternateColorSpace == PdfColorSpace::DeviceRGB
-                    && m_Color.rgb[0] == rhs.m_Color.rgb[0]
-                    && m_Color.rgb[1] == rhs.m_Color.rgb[1]
-                    && m_Color.rgb[2] == rhs.m_Color.rgb[2])
-                || (m_AlternateColorSpace == PdfColorSpace::DeviceCMYK
-                    && m_Color.cmyk[0] == rhs.m_Color.cmyk[0]
-                    && m_Color.cmyk[1] == rhs.m_Color.cmyk[1]
-                    && m_Color.cmyk[2] == rhs.m_Color.cmyk[2]
-                    && m_Color.cmyk[3] == rhs.m_Color.cmyk[3])
-                || (m_AlternateColorSpace == PdfColorSpace::Lab
-                    && m_Color.lab[0] == rhs.m_Color.lab[0]
-                    && m_Color.lab[1] == rhs.m_Color.lab[1]
-                    && m_Color.lab[2] == rhs.m_Color.lab[2])
-                ))
-        {
-            return true;
-        }
-
-        if (m_ColorSpace == PdfColorSpace::Unknown)
-            return true;
-    }
-    return false;
+    return m_IsTransparent == rhs.m_IsTransparent
+        && m_ColorSpace == rhs.m_ColorSpace
+        && std::memcmp(&m_Color, &rhs.m_Color, sizeof(Color)) == 0
+        && m_SeparationName == rhs.m_SeparationName
+        && m_SeparationDensity == rhs.m_SeparationDensity
+        && m_AlternateColorSpace == rhs.m_AlternateColorSpace;
 }
 
 bool PdfColor::operator!=(const PdfColor& rhs) const
 {
-    return !(*this == rhs);
+    return m_IsTransparent != rhs.m_IsTransparent
+        || m_ColorSpace != rhs.m_ColorSpace
+        || std::memcmp(&m_Color, &rhs.m_Color, sizeof(Color)) != 0
+        || m_SeparationName != rhs.m_SeparationName
+        || m_SeparationDensity != rhs.m_SeparationDensity
+        || m_AlternateColorSpace != rhs.m_AlternateColorSpace;
 }
 
 bool PdfColor::IsGrayScale() const
@@ -1159,6 +1176,11 @@ bool PdfColor::IsSeparation() const
 bool PdfColor::IsCieLab() const
 {
     return m_ColorSpace == PdfColorSpace::Lab;
+}
+
+bool PdfColor::IsTransparent() const
+{
+    return m_IsTransparent;
 }
 
 PdfColorSpace PdfColor::GetAlternateColorSpace() const

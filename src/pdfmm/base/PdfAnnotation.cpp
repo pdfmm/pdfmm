@@ -60,7 +60,7 @@ void PdfAnnotation::SetRect(const PdfRect& rect)
 {
     PdfArray arr;
     rect.ToArray(arr);
-    this->GetObject().GetDictionary().AddKey(PdfName::KeyRect, arr);
+    GetDictionary().AddKey(PdfName::KeyRect, arr);
 }
 
 void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj,
@@ -286,10 +286,12 @@ void PdfAnnotation::SetFlags(PdfAnnotationFlags flags)
 
 PdfAnnotationFlags PdfAnnotation::GetFlags() const
 {
-    if (GetDictionary().HasKey("F"))
-        return static_cast<PdfAnnotationFlags>(GetDictionary().MustFindKey("F").GetNumber());
+    auto obj = GetDictionary().FindKeyParent("F");
+    int64_t number;
+    if (obj == nullptr || !obj->TryGetNumber(number))
+        return PdfAnnotationFlags::None;
 
-    return PdfAnnotationFlags::None;
+    return static_cast<PdfAnnotationFlags>(number);
 }
 
 void PdfAnnotation::SetBorderStyle(double dHCorner, double dVCorner, double width)
@@ -308,73 +310,64 @@ void PdfAnnotation::SetBorderStyle(double dHCorner, double dVCorner, double widt
     if (strokeStyle.size() != 0)
         values.Add(strokeStyle);
 
-    this->GetObject().GetDictionary().AddKey("Border", values);
+    GetDictionary().AddKey("Border", values);
 }
 
-void PdfAnnotation::SetTitle(const PdfString& title)
+void PdfAnnotation::SetTitle(nullable<const PdfString&> title)
 {
-    this->GetObject().GetDictionary().AddKey("T", title);
+    if (title.has_value())
+        GetDictionary().AddKey("T", *title);
+    else
+        GetDictionary().RemoveKey("T");
 }
 
-nullable<PdfString> PdfAnnotation::GetTitle() const
+nullable<const PdfString&> PdfAnnotation::GetTitle() const
 {
-    if (GetDictionary().HasKey("T"))
-        return GetDictionary().MustFindKey("T").GetString();
+    auto obj = GetDictionary().FindKeyParent("T");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
+        return { };
 
-    return { };
+    return *str;
 }
 
-void PdfAnnotation::SetContents(const PdfString& contents)
+void PdfAnnotation::SetContents(nullable<const PdfString&> contents)
 {
-    GetDictionary().AddKey("Contents", contents);
+    if (contents.has_value())
+        GetDictionary().AddKey("Contents", *contents);
+    else
+        GetDictionary().RemoveKey("Contents");
 }
 
-nullable<PdfString> PdfAnnotation::GetContents() const
+nullable<const PdfString&> PdfAnnotation::GetContents() const
 {
-    if (GetDictionary().HasKey("Contents"))
-        return GetDictionary().MustFindKey("Contents").GetString();
+    auto obj = GetDictionary().FindKeyParent("Contents");
+    const PdfString* str;
+    if (obj == nullptr || !obj->TryGetString(str))
+        return { };
 
-    return { };
+    return *str;
 }
 
-PdfArray PdfAnnotation::GetColor() const
+PdfColor PdfAnnotation::GetColor() const
 {
-    if (GetDictionary().HasKey("C"))
-        return PdfArray(GetDictionary().MustFindKey("C").GetArray());
+    PdfColor color;
+    auto colorObj = GetDictionary().FindKeyParent("C");
+    if (colorObj == nullptr
+        || !PdfColor::TryCreateFromObject(*colorObj, color))
+    {
+        return { };
+    }
 
-    return PdfArray();
+    return color;
 }
 
-void PdfAnnotation::SetColor(double r, double g, double b)
+void PdfAnnotation::SetColor(nullable<const PdfColor&> color)
 {
-    PdfArray c;
-    c.Add(PdfObject(r));
-    c.Add(PdfObject(g));
-    c.Add(PdfObject(b));
-    GetDictionary().AddKey("C", c);
-}
-
-void PdfAnnotation::SetColor(double C, double M, double Y, double K)
-{
-    PdfArray c;
-    c.Add(PdfObject(C));
-    c.Add(PdfObject(M));
-    c.Add(PdfObject(Y));
-    c.Add(PdfObject(K));
-    GetDictionary().AddKey("C", c);
-}
-
-void PdfAnnotation::SetColor(double gray)
-{
-    PdfArray c;
-    c.Add(PdfVariant(gray));
-    GetDictionary().AddKey("C", c);
-}
-
-void PdfAnnotation::ResetColor()
-{
-    PdfArray c;
-    GetDictionary().AddKey("C", c);
+    if (color.has_value())
+        GetDictionary().AddKey("C", color->ToArray());
+    else
+        GetDictionary().RemoveKey("C");
 }
 
 PdfName GetAppearanceName(PdfAppearanceType appearance)

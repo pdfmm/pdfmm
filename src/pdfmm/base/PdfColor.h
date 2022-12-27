@@ -66,6 +66,15 @@ public:
     PdfColor(const PdfColor& rhs) = default;
 
 public:
+    /** Creates a color object from a PdfArray which represents a color.
+     *
+     *  \param obj an object that must be a color PdfArray
+     */
+    static bool TryCreateFromObject(const PdfObject& obj, PdfColor& color);
+    static PdfColor FromObject(const PdfObject& obj);
+    static bool TryCreateFromArray(const PdfArray& arr, PdfColor& color);
+    static PdfColor FromArray(const PdfArray& arr);
+
     /** Create a new PdfColor object with a CIE-LAB-value
      *
      *  \param cieL the value of the L component, must be between 0.0 and 100.0
@@ -94,6 +103,8 @@ public:
     *
     */
     static PdfColor CreateSeparationAll();
+
+    static PdfColor CreateTransparent();
 
 public:
     /** Test if this is a grayscale color.
@@ -125,6 +136,8 @@ public:
      *  \returns true if this is a lab Color object
      */
     bool IsCieLab() const;
+
+    bool IsTransparent() const;
 
     /** Get the colorspace of this PdfColor object
      *
@@ -335,15 +348,6 @@ public:
      */
     static PdfColor FromString(const std::string_view& name);
 
-    /** Creates a color object from a PdfArray which represents a color.
-     *
-     *  Raises an exception if this is no PdfColor!
-     *
-     *  \param arr an array that must be a color PdfArray
-     *  \returns a PdfColor object
-     */
-    static PdfColor FromArray(const PdfArray& arr);
-
     /** Creates a colorspace object from a color to insert into resources.
      *
      *  \param document a pointer to the owner document of the generated object
@@ -385,14 +389,16 @@ private:
         double gray;
     };
 
-    PdfColor(const Color& data, std::string m_separationName, double separationDensity,
-        PdfColorSpace colorSpace, PdfColorSpace alternateColorSpace);
+    PdfColor(bool isTransaprent, PdfColorSpace colorSpace, const Color& data,
+        std::string m_separationName, double separationDensity,
+        PdfColorSpace alternateColorSpace);
 
 private:
+    bool m_IsTransparent;
+    PdfColorSpace m_ColorSpace;
     Color m_Color;
     std::string m_SeparationName;
     double m_SeparationDensity;
-    PdfColorSpace m_ColorSpace;
     PdfColorSpace m_AlternateColorSpace;
 
 private:

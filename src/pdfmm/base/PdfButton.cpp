@@ -44,19 +44,27 @@ bool PdfButton::IsRadioButton() const
     return this->GetFieldFlag(static_cast<int>(ePdfButton_Radio), false);
 }
 
-void PdfButton::SetCaption(const PdfString& text)
+void PdfButton::SetCaption(nullable<const PdfString&> text)
 {
-    PdfObject& mk = this->GetOrCreateAppearanceCharacteristics();
-    mk.GetDictionary().AddKey("CA", text);
+    if (text.has_value())
+    {
+        GetWidget()->GetOrCreateAppearanceCharacteristics().SetCaption(*text);
+    }
+    else
+    {
+        auto apChars = GetWidget()->GetAppearanceCharacteristics();
+        if (apChars != nullptr)
+            apChars->SetCaption(nullptr);
+    }
 }
 
-nullable<PdfString> PdfButton::GetCaption() const
+nullable<const PdfString&> PdfButton::GetCaption() const
 {
-    auto mk = this->GetAppearanceCharacteristics();
-    if (mk != nullptr && mk->GetDictionary().HasKey("CA"))
-        return mk->GetDictionary().MustFindKey("CA").GetString();
+    auto apChars = GetWidget()->GetAppearanceCharacteristics();
+    if (apChars == nullptr)
+        return { };
 
-    return { };
+    return apChars->GetCaption();
 }
 
 PdfToggleButton::PdfToggleButton(PdfAcroForm& acroform, PdfFieldType fieldType,

@@ -9,8 +9,82 @@
 
 #include "PdfAnnotation.h"
 #include "PdfAction.h"
+#include "PdfDictionary.h"
 
 namespace mm {
+
+    class PDFMM_API PdfAppearanceCharacteristics : public PdfDictionaryElement
+    {
+        template<typename T>
+        friend class PdfAppearanceCharacteristicsProvider;
+
+    private:
+        PdfAppearanceCharacteristics(PdfDocument& parent);
+        PdfAppearanceCharacteristics(PdfObject& obj);
+
+    public:
+        void SetBorderColor(nullable<const PdfColor&> color);
+
+        PdfColor GetBorderColor() const;
+
+        void SetBackgroundColor(nullable<const PdfColor&> color);
+
+        PdfColor GetBackgroundColor() const;
+
+        void SetRolloverCaption(nullable<const PdfString&> text);
+
+        nullable<const PdfString&> GetRolloverCaption() const;
+
+        void SetAlternateCaption(nullable<const PdfString&> text);
+
+        nullable<const PdfString&> GetAlternateCaption() const;
+
+        void SetCaption(nullable<const PdfString&> text);
+
+        nullable<const PdfString&> GetCaption() const;
+    };
+
+    template <typename T>
+    class PdfAppearanceCharacteristicsProvider
+    {
+        friend class PdfAnnotationWidget;
+        friend class PdfAnnotationScreen;
+
+    public:
+        PdfAppearanceCharacteristicsProvider()
+        {
+            auto& dict = static_cast<T&>(*this).GetDictionary();
+            auto mkObj = dict.FindKey("MK");
+            if (mkObj != nullptr)
+                m_AppearanceCharacteristics.reset(new PdfAppearanceCharacteristics(*mkObj));
+        }
+
+    public:
+        PdfAppearanceCharacteristics& GetOrCreateAppearanceCharacteristics()
+        {
+            if (m_AppearanceCharacteristics == nullptr)
+            {
+                auto& ref = static_cast<T&>(*this);
+                m_AppearanceCharacteristics.reset(new PdfAppearanceCharacteristics(ref.GetDocument()));
+                ref.GetDictionary().AddKeyIndirect("MK", &m_AppearanceCharacteristics->GetObject());
+            }
+
+            return *m_AppearanceCharacteristics;
+        }
+
+        PdfAppearanceCharacteristics* GetAppearanceCharacteristics()
+        {
+            return m_AppearanceCharacteristics.get();
+        }
+
+        const PdfAppearanceCharacteristics* GetAppearanceCharacteristics() const
+        {
+            return m_AppearanceCharacteristics.get();
+        }
+
+    private:
+        std::unique_ptr<PdfAppearanceCharacteristics> m_AppearanceCharacteristics;
+    };
 
     class PDFMM_API PdfAnnotationActionBase : public PdfAnnotation
     {

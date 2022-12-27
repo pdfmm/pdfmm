@@ -35,35 +35,51 @@ void PdfPushButton::init()
     this->SetFieldFlag(static_cast<int>(ePdfButton_PushButton), true);
 }
 
-void PdfPushButton::SetRolloverCaption(const PdfString& text)
+void PdfPushButton::SetRolloverCaption(nullable<const PdfString&> text)
 {
-    auto& mk = this->GetOrCreateAppearanceCharacteristics();
-    mk.GetDictionary().AddKey("RC", text);
+    if (text.has_value())
+    {
+        GetWidget()->GetOrCreateAppearanceCharacteristics().SetRolloverCaption(*text);
+    }
+    else
+    {
+        auto apChars = GetWidget()->GetAppearanceCharacteristics();
+        if (apChars != nullptr)
+            apChars->SetRolloverCaption(nullptr);
+    }
 }
 
-nullable<PdfString>  PdfPushButton::GetRolloverCaption() const
+nullable<const PdfString&>  PdfPushButton::GetRolloverCaption() const
 {
-    auto mk = this->GetAppearanceCharacteristics();
-    if (mk != nullptr && mk->GetDictionary().HasKey("RC"))
-        return mk->GetDictionary().MustFindKey("RC").GetString();
+    auto apChars = GetWidget()->GetAppearanceCharacteristics();
+    if (apChars == nullptr)
+        return { };
 
-    return { };
+    return apChars->GetRolloverCaption();
 }
 
-void PdfPushButton::SetAlternateCaption(const PdfString& text)
+void PdfPushButton::SetAlternateCaption(nullable<const PdfString&> text)
 {
-    auto& mk = this->GetOrCreateAppearanceCharacteristics();
-    mk.GetDictionary().AddKey("AC", text);
+    if (text.has_value())
+    {
+        GetWidget()->GetOrCreateAppearanceCharacteristics().SetAlternateCaption(*text);
+    }
+    else
+    {
+        auto apChars = GetWidget()->GetAppearanceCharacteristics();
+        if (apChars != nullptr)
+            apChars->SetAlternateCaption(nullptr);
+    }
 
 }
 
-nullable<PdfString>  PdfPushButton::GetAlternateCaption() const
+nullable<const PdfString&> PdfPushButton::GetAlternateCaption() const
 {
-    auto mk = this->GetAppearanceCharacteristics();
-    if (mk != nullptr && mk->GetDictionary().HasKey("AC"))
-        return mk->GetDictionary().MustFindKey("AC").GetString();
+    auto apChars = GetWidget()->GetAppearanceCharacteristics();
+    if (apChars == nullptr)
+        return { };
 
-    return { };
+    return apChars->GetAlternateCaption();
 }
 
 PdfPushButton* PdfPushButton::GetParent()

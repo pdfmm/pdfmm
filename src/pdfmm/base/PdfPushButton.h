@@ -32,24 +32,24 @@ namespace mm
          *
          *  \param text the caption
          */
-        void SetRolloverCaption(const PdfString& text);
+        void SetRolloverCaption(nullable<const PdfString&> text);
 
         /**
          *  \returns the rollover caption of this button
          */
-        nullable<PdfString> GetRolloverCaption() const;
+        nullable<const PdfString&> GetRolloverCaption() const;
 
         /** Set the alternate caption of this button
          *  which is displayed when the button is pressed.
          *
          *  \param text the caption
          */
-        void SetAlternateCaption(const PdfString& text);
+        void SetAlternateCaption(nullable<const PdfString&> text);
 
         /**
          *  \returns the rollover caption of this button
          */
-        nullable<PdfString> GetAlternateCaption() const;
+        nullable<const PdfString&> GetAlternateCaption() const;
 
         PdfPushButton* GetParent();
         const PdfPushButton* GetParent() const;

@@ -1,7 +1,7 @@
-### 0.10.x (Summer 2022)
-- PdfAnnotation/PdfField: Finish API review
+- PdfDictionary::AddKeyIndirect should accept reference
 
 ### After 0.10
+- Review PdfNameTree/PdfFileSpec
 - Check accessibility of PdfEncrypt.h classe, check AESV3 namings
 - PdfFilterFactory: Move CreateFilterList somewhere else (PdfFilter), make it private
 - Add PdfAnnotation::GetRectRaw, make GetRect() return normalized rotation rect
