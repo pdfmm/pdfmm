@@ -31,6 +31,7 @@ include(CheckIncludeFile)
 include(CheckLibraryExists)
 include(TestBigEndian)
 include(CheckTypeSize)
+include(GNUInstallDirs)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -58,27 +59,7 @@ else()
     add_compile_definitions(PDFMM_STATIC)
 endif()
 
-if(DEFINED LIB_SUFFIX)
-    set(LIBDIRNAME "lib${LIB_SUFFIX}")
-else()
-
-# Some 64 bit linux distros use /usr/lib64 for 64 bit libraries.
-# on these platforms we must
-if(NOT DEFINED WANT_LIB64)
-    # TODO: detect 64-bit build and existance of /usr/lib64 and set to TRUE.
-    message("WANT_LIB64 unset; assuming normal library directory names")
-    set(WANT_LIB64 FALSE)
-endif()
-
-if(WANT_LIB64)
-    set(LIBDIRNAME "lib64")
-else()
-    set(LIBDIRNAME "lib")
-endif()
-
-endif() # DEFINED LIB_SUFFIX
-
-message("Will install libraries to ${CMAKE_INSTALL_PREFIX}/${LIBDIRNAME}")
+message("Will install libraries to ${CMAKE_INSTALL_FULL_LIBDIR}")
 
 # Linux packagers want an uninstall target.
 configure_file(

@@ -29,8 +29,8 @@ set(PDFMM_BASE_HEADERS
 )
 set(PDFMM_CONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h")
 
-install(FILES ${PDFMM_BASE_HEADERS} DESTINATION "include/pdfmm")
-install(FILES ${PDFMM_CONFIG_HEADER} DESTINATION "include/pdfmm/base")
+install(FILES ${PDFMM_BASE_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/pdfmm")
+install(FILES ${PDFMM_CONFIG_HEADER} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/pdfmm/base")
 
 set(PDFMM_SOURCES ${PDFMM_BASE_HEADERS} ${PDFMM_CONFIG_HEADER})
 if(PDFMM_SHARED AND WIN32)
@@ -54,7 +54,7 @@ endmacro()
 
 foreach(subdir common base contrib)
     add_source(${subdir} "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}")
-    install(FILES ${HEADER_FILES} DESTINATION "include/pdfmm/${subdir}")
+    install(FILES ${HEADER_FILES} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/pdfmm/${subdir}")
 endforeach()
 
 if(NOT PDFMM_HAVE_FONTCONFIG)
@@ -78,9 +78,9 @@ if(PDFMM_STATIC)
         OUTPUT_NAME "pdfmm"
     )
     install(TARGETS pdfmm_static
-        RUNTIME DESTINATION "bin"
-        LIBRARY DESTINATION "${LIBDIRNAME}"
-        ARCHIVE DESTINATION "${LIBDIRNAME}"
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
     set(PDFMM_LIBRARIES pdfmm_static pdfmm_private
         CACHE INTERNAL "Which pdfmm library variant to depend on")
@@ -102,9 +102,9 @@ if(PDFMM_SHARED)
     # Since we're building a shared pdfmm, prefer to depend on this one for
     # tests and tools over the static library (if built).
     install(TARGETS pdfmm_shared
-        RUNTIME DESTINATION "bin"
-        LIBRARY DESTINATION "${LIBDIRNAME}"
-        ARCHIVE DESTINATION "${LIBDIRNAME}"
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 
     # Create a pkg-config file for linking against shared library
@@ -120,7 +120,7 @@ if(PDFMM_SHARED)
             @ONLY)
         install(
             FILES "${PROJECT_BINARY_DIR}/libpdfmm.pc"
-            DESTINATION "${LIBDIRNAME}/pkgconfig")
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
     else()
         message("Pkg-config not found. No pkg-config file will be created.")
     endif()
