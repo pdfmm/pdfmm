@@ -1,4 +1,5 @@
 ### After 0.10
+- PdfCanvas: Add CopyTo facilities, see PdfContents
 - Review PdfNameTree/PdfFileSpec
 - Check accessibility of PdfEncrypt.h classe, check AESV3 namings
 - PdfFilterFactory: Move CreateFilterList somewhere else (PdfFilter), make it private

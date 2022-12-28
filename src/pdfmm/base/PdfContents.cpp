@@ -46,9 +46,36 @@ void PdfContents::Reset(PdfObject* obj)
     reset();
 }
 
-void PdfContents::reset()
+charbuff PdfContents::GetCopy() const
 {
-    m_parent->GetObject().GetDictionary().AddKeyIndirect("Contents", *m_object);
+    charbuff ret;
+    CopyTo(ret);
+    return ret;
+}
+
+void PdfContents::CopyTo(charbuff& buffer) const
+{
+    BufferStreamDevice stream(buffer);
+    CopyTo(stream);
+}
+
+void PdfContents::CopyTo(OutputStream& stream) const
+{
+    const PdfArray* arr;
+    if (m_object->TryGetArray(arr))
+    {
+        copyTo(stream, *arr);
+    }
+    else if (m_object->IsDictionary())
+    {
+        auto objStream = m_object->GetStream();
+        if (objStream != nullptr)
+            objStream->CopyTo(stream);
+    }
+    else
+    {
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
+    }
 }
 
 PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
@@ -77,16 +104,8 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
         // Record all content and readd into a new stream that
         // substitue all the previous streams
         charbuff buffer;
-        for (unsigned i = 0; i < arr->GetSize(); i++)
-        {
-            PdfObjectStream* stream;
-            auto streamObj = arr->FindAt(i);
-            if (streamObj != nullptr && (stream = streamObj->GetStream()) != nullptr)
-            {
-                BufferStreamDevice device(buffer);
-                stream->CopyTo(device);
-            }
-        }
+        BufferStreamDevice device(buffer);
+        copyTo(device, *arr);
 
         if (buffer.size() != 0)
         {
@@ -109,4 +128,20 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
     else
         arr->Add(newStm.GetIndirectReference());
     return newStm.GetOrCreateStream();
+}
+
+void PdfContents::copyTo(OutputStream& stream, const PdfArray& arr) const
+{
+    for (unsigned i = 0; i < arr.GetSize(); i++)
+    {
+        const PdfObjectStream* objStream;
+        auto streamObj = arr.FindAt(i);
+        if (streamObj != nullptr && (objStream = streamObj->GetStream()) != nullptr)
+            objStream->CopyTo(stream);
+    }
+}
+
+void PdfContents::reset()
+{
+    m_parent->GetObject().GetDictionary().AddKeyIndirect("Contents", *m_object);
 }
