@@ -53,7 +53,7 @@ TEST_CASE("testBig2Little")
         PdfPainter painter;
         painter.SetCanvas(page);
         auto font = doc.GetFonts().GetFont("Arial");
-        painter.GetTextState().SetFont(font, 30.0);
+        painter.GetTextState().SetFont(*font, 30.0);
         painter.DrawText("ěščř", 100, 600);
         painter.FinishDrawing();
     }

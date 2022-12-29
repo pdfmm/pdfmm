@@ -88,7 +88,7 @@ private:
     PdfTextStateWrapper(PdfPainter& painter, PdfTextState& state);
 
 public:
-    void SetFont(const PdfFont* font, double fontSize);
+    void SetFont(const PdfFont& font, double fontSize);
 
     /** Set the current horizontal scaling (operator Tz)
      *

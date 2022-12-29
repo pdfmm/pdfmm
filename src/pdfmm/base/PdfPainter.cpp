@@ -1639,12 +1639,12 @@ void PdfGraphicsStateWrapper::SetStrokeColor(const PdfColor& color)
 PdfTextStateWrapper::PdfTextStateWrapper(PdfPainter& painter, PdfTextState& state)
     : m_painter(&painter), m_state(&state) { }
 
-void PdfTextStateWrapper::SetFont(const PdfFont* font, double fontSize)
+void PdfTextStateWrapper::SetFont(const PdfFont& font, double fontSize)
 {
-    if (m_state->Font == font && m_state->FontSize == fontSize)
+    if (m_state->Font == &font && m_state->FontSize == fontSize)
         return;
 
-    m_state->Font = font;
+    m_state->Font = &font;
     m_state->FontSize = fontSize;
     m_painter->SetFont(m_state->Font, m_state->FontSize);
 }
