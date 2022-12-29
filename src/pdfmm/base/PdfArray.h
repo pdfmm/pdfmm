@@ -327,7 +327,6 @@ T PdfArray::GetAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue) con
 template<typename T>
 bool PdfArray::TryGetAtAs(unsigned idx, T& value) const
 {
-    T value;
     if (Object<T>::TryGet(getAt(idx), value))
     {
         return true;
