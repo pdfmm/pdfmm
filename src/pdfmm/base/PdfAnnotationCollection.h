@@ -32,6 +32,10 @@ namespace mm
 
         const PdfAnnotation& GetAnnotAt(unsigned index) const;
 
+        PdfAnnotation& GetAnnot(const PdfReference& ref);
+
+        const PdfAnnotation& GetAnnot(const PdfReference& ref) const;
+
         void RemoveAnnotAt(unsigned index);
 
         void RemoveAnnot(const PdfReference& ref);
@@ -97,7 +101,8 @@ namespace mm
         PdfAnnotation& addAnnotation(std::unique_ptr<PdfAnnotation>&& annot);
         PdfArray* getAnnotationsArray() const;
         void initAnnotations();
-        PdfAnnotation& getAt(unsigned index) const;
+        PdfAnnotation& getAnnotAt(unsigned index) const;
+        PdfAnnotation& getAnnot(const PdfReference& ref) const;
         void fixIndices(unsigned index);
 
     private:

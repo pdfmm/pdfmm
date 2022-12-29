@@ -80,6 +80,16 @@ const PdfField& PdfAcroForm::GetFieldAt(unsigned index) const
     return getField(index);
 }
 
+PdfField& PdfAcroForm::GetField(const PdfReference& ref)
+{
+    return getField(ref);
+}
+
+const PdfField& PdfAcroForm::GetField(const PdfReference& ref) const
+{
+    return getField(ref);
+}
+
 PdfField& PdfAcroForm::getField(unsigned index) const
 {
     const_cast<PdfAcroForm&>(*this).initFields();
@@ -87,6 +97,12 @@ PdfField& PdfAcroForm::getField(unsigned index) const
         PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     return *m_Fields[index];
+}
+
+PdfField& PdfAcroForm::getField(const PdfReference& ref) const
+{
+    const_cast<PdfAcroForm&>(*this).initFields();
+    return *m_Fields[(*m_fieldMap).at(ref)];
 }
 
 void PdfAcroForm::RemoveFieldAt(unsigned index)

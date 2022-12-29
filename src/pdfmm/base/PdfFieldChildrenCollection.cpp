@@ -30,12 +30,22 @@ PdfField& PdfFieldChildrenCollectionBase::CreateChild(PdfPage& page, const PdfRe
 
 PdfField& PdfFieldChildrenCollectionBase::GetFieldAt(unsigned index)
 {
-    return getAt(index);
+    return getFieldAt(index);
 }
 
 const PdfField& PdfFieldChildrenCollectionBase::GetFieldAt(unsigned index) const
 {
-    return getAt(index);
+    return getFieldAt(index);
+}
+
+PdfField& PdfFieldChildrenCollectionBase::GetField(const PdfReference& ref)
+{
+    return getField(ref);
+}
+
+const PdfField& PdfFieldChildrenCollectionBase::GetField(const PdfReference& ref) const
+{
+    return getField(ref);
 }
 
 void PdfFieldChildrenCollectionBase::RemoveFieldAt(unsigned index)
@@ -130,13 +140,19 @@ PdfArray* PdfFieldChildrenCollectionBase::getKidsArray() const
     return &obj->GetArray();
 }
 
-PdfField& PdfFieldChildrenCollectionBase::getAt(unsigned index) const
+PdfField& PdfFieldChildrenCollectionBase::getFieldAt(unsigned index) const
 {
     const_cast<PdfFieldChildrenCollectionBase&>(*this).initFields();
     if (index >= m_Fields.size())
         PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     return *m_Fields[index];
+}
+
+PdfField& PdfFieldChildrenCollectionBase::getField(const PdfReference& ref) const
+{
+    const_cast<PdfFieldChildrenCollectionBase&>(*this).initFields();
+    return *m_Fields[(*m_fieldMap).at(ref)];
 }
 
 void PdfFieldChildrenCollectionBase::initFields()

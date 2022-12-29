@@ -30,6 +30,10 @@ namespace mm
 
         const PdfField& GetFieldAt(unsigned index) const;
 
+        PdfField& GetField(const PdfReference& ref);
+
+        const PdfField& GetField(const PdfReference& ref) const;
+
         void RemoveFieldAt(unsigned index);
 
         void RemoveField(const PdfReference& ref);
@@ -98,7 +102,8 @@ namespace mm
     private:
         PdfArray* getKidsArray() const;
         void initFields();
-        PdfField& getAt(unsigned index) const;
+        PdfField& getFieldAt(unsigned index) const;
+        PdfField& getField(const PdfReference& ref) const;
         void fixIndices(unsigned index);
 
     private:

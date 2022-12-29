@@ -23,12 +23,22 @@ PdfAnnotation& PdfAnnotationCollection::CreateAnnot(PdfAnnotationType annotType,
 
 PdfAnnotation& PdfAnnotationCollection::GetAnnotAt(unsigned index)
 {
-    return getAt(index);
+    return getAnnotAt(index);
 }
 
 const PdfAnnotation& PdfAnnotationCollection::GetAnnotAt(unsigned index) const
 {
-    return getAt(index);
+    return getAnnotAt(index);
+}
+
+PdfAnnotation& PdfAnnotationCollection::GetAnnot(const PdfReference& ref)
+{
+    return getAnnot(ref);
+}
+
+const PdfAnnotation& PdfAnnotationCollection::GetAnnot(const PdfReference& ref) const
+{
+    return getAnnot(ref);
 }
 
 void PdfAnnotationCollection::RemoveAnnotAt(unsigned index)
@@ -121,13 +131,19 @@ PdfArray* PdfAnnotationCollection::getAnnotationsArray() const
     return &obj->GetArray();
 }
 
-PdfAnnotation& PdfAnnotationCollection::getAt(unsigned index) const
+PdfAnnotation& PdfAnnotationCollection::getAnnotAt(unsigned index) const
 {
     const_cast<PdfAnnotationCollection&>(*this).initAnnotations();
     if (index >= m_Annots.size())
         PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     return *m_Annots[index];
+}
+
+PdfAnnotation& PdfAnnotationCollection::getAnnot(const PdfReference& ref) const
+{
+    const_cast<PdfAnnotationCollection&>(*this).initAnnotations();
+    return *m_Annots[(*m_annotMap).at(ref)];
 }
 
 void PdfAnnotationCollection::initAnnotations()

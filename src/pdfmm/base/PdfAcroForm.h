@@ -70,6 +70,10 @@ public:
 
     const PdfField& GetFieldAt(unsigned index) const;
 
+    PdfField& GetField(const PdfReference& ref);
+
+    const PdfField& GetField(const PdfReference& ref) const;
+
     /** Delete the field with index index from this page.
      *  \param index the index of the field to delete
      */
@@ -156,6 +160,7 @@ private:
     void initFields();
 
     PdfField& getField(unsigned index) const;
+    PdfField& getField(const PdfReference& ref) const;
 
     void fixIndices(unsigned index);
 
