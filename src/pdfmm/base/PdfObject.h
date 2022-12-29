@@ -550,6 +550,13 @@ private:
             (void)obj;
             throw PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__);
         }
+
+        static bool TryGet(const PdfObject& obj, T& value)
+        {
+            (void)obj;
+            (void)value;
+            throw PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__);
+        }
     };
 
     template <>
@@ -558,6 +565,11 @@ private:
         static bool Get(const PdfObject& obj)
         {
             return obj.GetBool();
+        }
+
+        static bool TryGet(const PdfObject& obj, bool& value)
+        {
+            return obj.TryGetBool(value);
         }
     };
 
@@ -568,6 +580,11 @@ private:
         {
             return obj.GetNumber();
         }
+
+        static bool TryGet(const PdfObject& obj, int64_t& value)
+        {
+            return obj.TryGetNumber(value);
+        }
     };
 
     template <>
@@ -576,6 +593,11 @@ private:
         static double Get(const PdfObject& obj)
         {
             return obj.GetReal();
+        }
+
+        static bool TryGet(const PdfObject& obj, double& value)
+        {
+            return obj.TryGetReal(value);
         }
     };
 
@@ -586,6 +608,11 @@ private:
         {
             return obj.GetReference();
         }
+
+        static bool TryGet(const PdfObject& obj, PdfReference& value)
+        {
+            return obj.TryGetReference(value);
+        }
     };
 
     template <>
@@ -595,6 +622,11 @@ private:
         {
             return obj.GetName();
         }
+
+        static bool TryGet(const PdfObject& obj, PdfName& value)
+        {
+            return obj.TryGetName(value);
+        }
     };
 
     template <>
@@ -603,6 +635,11 @@ private:
         static PdfString Get(const PdfObject& obj)
         {
             return obj.GetString();
+        }
+
+        static bool TryGet(const PdfObject& obj, PdfString& value)
+        {
+            return obj.TryGetString(value);
         }
     };
 

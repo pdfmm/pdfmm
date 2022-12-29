@@ -266,6 +266,18 @@ public:
     template <typename T>
     T FindKeyParentAs(const std::string_view& key, const std::common_type_t<T>& defvalue = { }) const;
 
+    template <typename T>
+    T FindKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& defvalue = { }) const;
+
+    template <typename T>
+    T FindKeyParentAsSafe(const std::string_view& key, const std::common_type_t<T>& defvalue = { }) const;
+
+    template <typename T>
+    bool TryFindKeyAs(const std::string_view& key, T& value) const;
+
+    template <typename T>
+    bool TryFindKeyParentAs(const std::string_view& key, T& value) const;
+
     /** Allows to check if a dictionary contains a certain key.
      * \param key look for the key named key.Name() in the dictionary
      *
@@ -354,7 +366,59 @@ T PdfDictionary::FindKeyParentAs(const std::string_view& key, const std::common_
     if (obj == nullptr)
         return defvalue;
 
-    return  Object<T>::Get(*obj);
+    return Object<T>::Get(*obj);
+}
+
+template<typename T>
+T PdfDictionary::FindKeyAsSafe(const std::string_view& key, const std::common_type_t<T>& defvalue) const
+{
+    T value;
+    auto obj = findKey(key);
+    if (obj != nullptr && Object<T>::TryGet(*obj, value))
+        return value;
+    else
+        return defvalue;
+}
+
+template<typename T>
+T PdfDictionary::FindKeyParentAsSafe(const std::string_view& key, const std::common_type_t<T>& defvalue) const
+{
+    T value;
+    auto obj = findKeyParent(key);
+    if (obj != nullptr && Object<T>::TryGet(*obj, value))
+        return value;
+    else
+        return defvalue;
+}
+
+template <typename T>
+bool PdfDictionary::TryFindKeyAs(const std::string_view& key, T& value) const
+{
+    auto obj = findKey(key);
+    if (obj != nullptr && Object<T>::TryGet(*obj, value))
+    {
+        return true;
+    }
+    else
+    {
+        value = { };
+        return false;
+    }
+}
+
+template <typename T>
+bool PdfDictionary::TryFindKeyParentAs(const std::string_view& key, T& value) const
+{
+    auto obj = findKeyParent(key);
+    if (obj != nullptr && Object<T>::TryGet(*obj, value))
+    {
+        return true;
+    }
+    else
+    {
+        value = { };
+        return false;
+    }
 }
 
 template <typename TObject, typename TMapIterator>

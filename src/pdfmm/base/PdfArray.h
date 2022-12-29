@@ -124,6 +124,15 @@ public:
     void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt& encrypt, charbuff& buffer) const override;
 
+    template <typename T>
+    T GetAtAs(unsigned idx) const;
+
+    template <typename T>
+    T GetAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue = { }) const;
+
+    template <typename T>
+    bool TryGetAtAs(unsigned idx, T& value) const;
+
     /** Get the object at the given index out of the array.
      *
      * Lookup in the indirect objects as well, if the shallow object was a reference.
@@ -138,6 +147,15 @@ public:
 
     const PdfObject& MustFindAt(unsigned idx) const;
     PdfObject& MustFindAt(unsigned idx);
+
+    template <typename T>
+    T FindAtAs(unsigned idx, const std::common_type_t<T>& defvalue = { }) const;
+
+    template <typename T>
+    T FindAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue = { }) const;
+
+    template <typename T>
+    bool TryFindAtAs(unsigned idx, T& value) const;
 
     void RemoveAt(unsigned idx);
 
@@ -289,6 +307,73 @@ private:
 private:
     PdfArrayList m_Objects;
 };
+
+template<typename T>
+T PdfArray::GetAtAs(unsigned idx) const
+{
+    return Object<T>::Get(getAt(idx));
+}
+
+template<typename T>
+T PdfArray::GetAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue) const
+{
+    T value;
+    if (Object<T>::TryGet(getAt(idx), value))
+        return value;
+    else
+        return defvalue;
+}
+
+template<typename T>
+bool PdfArray::TryGetAtAs(unsigned idx, T& value) const
+{
+    T value;
+    if (Object<T>::TryGet(getAt(idx), value))
+    {
+        return true;
+    }
+    else
+    {
+        value = { };
+        return false;
+    }
+}
+
+template<typename T>
+T PdfArray::FindAtAs(unsigned idx, const std::common_type_t<T>& defvalue) const
+{
+    auto obj = findAt(idx);
+    if (obj == nullptr)
+        return defvalue;
+
+    return Object<T>::Get(*obj);
+}
+
+template<typename T>
+T PdfArray::FindAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue) const
+{
+    T value;
+    auto obj = findAt(idx);
+    if (obj != nullptr && Object<T>::TryGet(*obj, value))
+        return value;
+    else
+        return defvalue;
+}
+
+template<typename T>
+bool PdfArray::TryFindAtAs(unsigned idx, T& value) const
+{
+    auto obj = findAt(idx);
+    if (obj != nullptr && Object<T>::TryGet(*obj, value))
+    {
+        return true;
+    }
+    else
+    {
+        value = { };
+        return false;
+    }
+}
 
 template<typename InputIterator>
 void PdfArray::insert(const PdfArray::iterator& pos,

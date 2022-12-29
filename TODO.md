@@ -27,9 +27,6 @@ either assume UTF-8 and/or checks for used codepoints
 - Extract Matrix PdfMath.h -> Matrix.h, move it to common/
 - PdfToggleButton: Add proper IsChecked/ExportValue handling
 
-Ideas:
-- PdfObject::TryFindKeyAsSafe()
-
 ### After 1.0
 - Added version of PdfFont::TryGetSubstituteFont for rendering
   (metrics of loaded font override metrics found on /FontFile)
