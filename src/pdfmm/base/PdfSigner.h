@@ -64,7 +64,7 @@ namespace mm
      * \param signature the signature field where the signature will be applied
      * \param options document saving options
      */
-    void SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& signer,
+    PDFMM_API void SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& signer,
         PdfSignature& signature, PdfSaveOptions saveOptions = PdfSaveOptions::None);
 }
 
