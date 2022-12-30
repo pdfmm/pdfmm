@@ -44,73 +44,63 @@ class PDFMM_API PdfObject
 
 public:
 
-    /** Create a PDF object with object and generation number -1
-     *  and the value of being an empty PdfDictionary.
+    /** Create a PDF object with an empty PdfDictionary.
      */
     PdfObject();
 
     virtual ~PdfObject();
 
-    /** Create a PDF object with object and generation number -1
-     *  and the value of the passed variant.
+    /** Create a PDF object with the passed variant.
      *
      *  \param var the value of the object
      */
     PdfObject(const PdfVariant& var);
     PdfObject(PdfVariant&& var) noexcept;
 
-    /** Construct a PdfObject with object and generation number -1
-     *  and a bool as value.
+    /** Construct a PdfObject with bool as value.
      *
      *  \param b the boolean value of this PdfObject
      */
     PdfObject(bool b);
 
-    /** Construct a PdfObject with object and generation number -1
-     *  and a int64_t as value.
+    /** Construct a PdfObject with object with int64_t as value.
      *
      *  \param l the int64_t value of this PdfObject
      */
     PdfObject(int64_t l);
 
-    /** Construct a PdfObject with object and generation number -1
-     *  and a double as value.
+    /** Construct a PdfObject with double as value.
      *
      *  \param d the double value of this PdfObject
      */
     PdfObject(double d);
 
-    /** Construct a PdfObject with object and generation number -1
-     *  and a PdfString as value.
+    /** Construct a PdfObject with PdfString as value.
      *
      *  \param str the string value of this PdfObject
      */
     PdfObject(const PdfString& str);
 
-    /** Construct a PdfObject with object and generation number -1
-     *  and a PdfName as value.
+    /** Construct a PdfObject with PdfName as value.
      *
      *  \param name the value of this PdfObject
      */
     PdfObject(const PdfName& name);
 
-    /** Construct a PdfObject with object and generation number -1
-     *  and a PdfReference as value.
+    /** Construct a PdfObject with PdfReference as value.
      *
      *  \param ref the value of the this PdfObject
      */
     PdfObject(const PdfReference& ref);
 
-    /** Construct a PdfObject with object and generation number -1
-     *  and a PdfArray as value.
+    /** Construct a PdfObject with PdfArray as value.
      *
      *  \param arr the value of the this PdfObject
      */
     PdfObject(const PdfArray& arr);
     PdfObject(PdfArray&& arr) noexcept;
 
-    /** Construct a PdfObject with object and generation number -1
-     *  and a PdfDictionary as value.
+    /** Construct a PdfObject with PdfDictionary as value.
      *
      *  \param dict the value of the this PdfObject
      */
