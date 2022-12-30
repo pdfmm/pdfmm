@@ -321,8 +321,18 @@ void PdfWriter::SetUseXRefStream(bool useXRefStream)
 
 PdfWriteFlags ToWriteFlags(PdfSaveOptions opts)
 {
-    if (opts == PdfSaveOptions::Clean)
-        return PdfWriteFlags::Clean;
+    PdfWriteFlags ret = PdfWriteFlags::None;
+    if ((opts & PdfSaveOptions::NoFlateCompress) !=
+        PdfSaveOptions::None)
+    {
+        ret |= PdfWriteFlags::NoFlateCompress;
+    }
 
-    return PdfWriteFlags::None;
+    if ((opts & PdfSaveOptions::Clean) !=
+        PdfSaveOptions::None)
+    {
+        ret |= PdfWriteFlags::Clean;
+    }
+
+    return ret;
 }
