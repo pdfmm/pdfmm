@@ -104,6 +104,19 @@ charbuff PdfObjectStream::GetCopySafe() const
     return ret;
 }
 
+void PdfObjectStream::Unwrap()
+{
+    PdfObject obj;
+    auto& objectStream = obj.GetOrCreateStream();
+    {
+        auto outputStream = objectStream.GetOutputStream();
+        auto inputStream = GetInputStream();
+        inputStream.CopyTo(outputStream);
+    }
+
+    objectStream.MoveTo(*m_Parent);
+}
+
 void PdfObjectStream::MoveTo(PdfObject& obj)
 {
     PDFMM_RAISE_LOGIC_IF(!obj.IsDictionary(), "Target object should be a dictionary");

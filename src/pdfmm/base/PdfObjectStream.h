@@ -171,6 +171,10 @@ public:
      */
     void CopyToSafe(OutputStream& stream) const;
 
+    /** Unpack non media filters
+     */
+    void Unwrap();
+
     void MoveTo(PdfObject& obj);
 
     /** Get the stream's length with all filters applied (e.g. if the stream is
