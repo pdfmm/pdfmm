@@ -42,7 +42,7 @@ namespace COMMON_NAMESPACE
     public:
         charbuff_t() { }
         charbuff_t(const charbuff_t&) = default;
-        charbuff_t(charbuff_t&&) = default;
+        charbuff_t(charbuff_t&&) noexcept = default;
         charbuff_t(size_t size)
         {
             std::string::resize(size);
@@ -58,7 +58,7 @@ namespace COMMON_NAMESPACE
 
     public:
         charbuff_t& operator=(const charbuff_t&) = default;
-        charbuff_t& operator=(charbuff_t&&) = default;
+        charbuff_t& operator=(charbuff_t&&) noexcept = default;
         charbuff_t& operator=(const std::string_view & view)
         {
             std::string::assign(view.data(), view.size());

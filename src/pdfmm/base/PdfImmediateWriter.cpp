@@ -124,11 +124,11 @@ void PdfImmediateWriter::Finish()
     m_attached = false;
 }
 
-unique_ptr<PdfObjectStream> PdfImmediateWriter::CreateStream(PdfObject& parent)
+unique_ptr<PdfObjectStreamProvider> PdfImmediateWriter::CreateStream()
 {
-    return unique_ptr<PdfObjectStream>(m_OpenStream ?
-        static_cast<PdfObjectStream*>(new PdfMemoryObjectStream(parent)) :
-        static_cast<PdfObjectStream*>(new PdfStreamedObjectStream(parent, *m_Device)));
+    return unique_ptr<PdfObjectStreamProvider>(m_OpenStream ?
+        static_cast<PdfObjectStreamProvider*>(new PdfMemoryObjectStream()) :
+        static_cast<PdfObjectStreamProvider*>(new PdfStreamedObjectStream(*m_Device)));
 }
 
 void PdfImmediateWriter::FinishLastObject()
@@ -145,8 +145,8 @@ void PdfImmediateWriter::FinishLastObject()
 
 void PdfImmediateWriter::BeginAppendStream(const PdfObjectStream& stream)
 {
-    auto fileStream = dynamic_cast<const PdfStreamedObjectStream*>(&stream);
-    if (fileStream != nullptr)
+    auto streamedObjectStream = dynamic_cast<const PdfStreamedObjectStream*>(&stream.GetProvider());
+    if (streamedObjectStream != nullptr)
     {
         // Only one open file stream is allowed at a time
         PDFMM_ASSERT(!m_OpenStream);
@@ -154,7 +154,7 @@ void PdfImmediateWriter::BeginAppendStream(const PdfObjectStream& stream)
 
         auto encrypt = GetEncrypt();
         if (encrypt != nullptr)
-            const_cast<PdfStreamedObjectStream*>(fileStream)->SetEncrypted(*encrypt);
+            const_cast<PdfStreamedObjectStream*>(streamedObjectStream)->SetEncrypted(*encrypt);
     }
 }
 

@@ -13,11 +13,10 @@
 #include "PdfEncrypt.h"
 #include "PdfOutputStream.h"
 #include "PdfInputStream.h"
+#include "PdfObjectStreamProvider.h"
 
 namespace mm {
 
-class InputStream;
-class PdfName;
 class PdfObject;
 class PdfObjectStream;
 
@@ -82,14 +81,13 @@ private:
  *  \see PdfMemoryObjectStream
  *  \see PdfFileObjectStream
  */
-class PDFMM_API PdfObjectStream
+class PDFMM_API PdfObjectStream final
 {
     friend class PdfObject;
     friend class PdfParserObject;
     friend class PdfObjectInputStream;
     friend class PdfObjectOutputStream;
-    friend class PdfStreamedObjectStream;
-    friend class PdfMemoryObjectStream;
+    friend class PdfImmediateWriter;
 
 private:
     /** Create a new PdfObjectStream object which has a parent PdfObject.
@@ -97,7 +95,7 @@ private:
      *  This constructor will be called by PdfObject::Stream() for you.
      *  \param parent parent object
      */
-    PdfObjectStream(PdfObject& parent);
+    PdfObjectStream(PdfObject& parent, std::unique_ptr<PdfObjectStreamProvider>&& provider);
 
 public:
     virtual ~PdfObjectStream();
@@ -175,14 +173,12 @@ public:
      */
     void Unwrap();
 
-    void MoveTo(PdfObject& obj);
-
     /** Get the stream's length with all filters applied (e.g. if the stream is
      * Flate-compressed, the length of the compressed data stream).
      *
      *  \returns the length of the internal buffer
      */
-    virtual size_t GetLength() const = 0;
+    size_t GetLength() const;
 
     const PdfFilterList& GetFilters() { return m_Filters; }
 
@@ -192,33 +188,32 @@ public:
      */
     PdfObjectStream& operator=(const PdfObjectStream& rhs);
 
-protected:
+    PdfObjectStream& operator=(PdfObjectStream&& rhs) noexcept;
+
+private:
     /** Write the stream to an output device
      *  \param device write to this outputdevice.
      *  \param encrypt encrypt stream data using this object
      */
-    virtual void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) = 0;
-
-    /** Copy data and non data fields from rhs
-     */
-    virtual void CopyDataFrom(const PdfObjectStream& rhs);
-
-    /** Copy non data fields from rhs
-     */
-    void CopyFrom(const PdfObjectStream& rhs);
-
-    virtual std::unique_ptr<InputStream> getInputStream() = 0;
-
-    virtual std::unique_ptr<OutputStream> getOutputStream() = 0;
-
-    void EnsureClosed() const;
+    void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt);
 
     PdfObject& GetParent() { return *m_Parent; }
 
-private:
     void InitData(InputStream& stream, size_t len, PdfFilterList&& filterList);
 
+    /** Copy data and non data fields from rhs
+     */
+    void CopyFrom(const PdfObjectStream& rhs);
+
+    /** Copy data and non data fields from rhs
+     */
+    void MoveFrom(PdfObjectStream& rhs);
+
+    PdfObjectStreamProvider& GetProvider() const { return *m_Provider; }
+
 private:
+    void ensureClosed() const;
+
     std::unique_ptr<InputStream> getInputStream(bool raw, PdfFilterList& mediaFilters,
         const PdfDictionary*& decodeParms);
 
@@ -229,6 +224,7 @@ private:
 
 private:
     PdfObject* m_Parent;
+    std::unique_ptr<PdfObjectStreamProvider> m_Provider;
     PdfFilterList m_Filters;
     bool m_locked;
 };

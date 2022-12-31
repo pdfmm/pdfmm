@@ -1,17 +1,24 @@
 ### After 0.10
+- PdfFontManager: Add font load from file/better debugging
+  in lookup (eg. to spot found font with different name)
+- Review all page import functions to check correct working/improve
+  the code
 - PdfCanvas: Add CopyTo facilities, see PdfContents
 - Review PdfNameTree/PdfFileSpec
 - Check accessibility of PdfEncrypt.h classe, check AESV3 namings
 - PdfFilterFactory: Move CreateFilterList somewhere else (PdfFilter), make it private
+- Rename NameToColorSpaceRaw/ColorSpaceToNameRaw to something more consistent?
 - Add PdfAnnotation::GetRectRaw, make GetRect() return normalized rotation rect
-- PdfPage: Add iteration on PdfPage*. See PdfAnnotationCollection
 - Make PdfObjectStream not flate filter by default in PdfMemDocument?
 - PdfElement: Optimize, keep dictionary/array pointer. Add GetObjectPtr()
+- PdfPageCollection: Fix caching (it's very slow at the moment)
+- PdfPageCollection: Add iteration on PdfPage*. See PdfAnnotationCollection
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - Fix PdfFontMetrics handling of symbol encoding
 - Fix/complete handling of text extraction in rotated pages
 - Check PdfWriter should really update doc trailer when saving.
   Now the new trailer is written but the doc still has the old one
+- PdfImage: cache PdfColorSpace
 - Check PdfSignature to have correct /ByteRange and /Contents
 values in the dictionary after signing with SignDocument
 - Evaluate move more utf8::next to utf8::unchecked::next

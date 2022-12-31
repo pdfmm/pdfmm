@@ -248,7 +248,8 @@ void PdfObject::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
                 auto input = m_Stream->GetInputStream();
                 input.CopyTo(output);
             }
-            stream.MoveTo(const_cast<PdfObject&>(*this));
+
+            stream.MoveFrom(*m_Stream);
         }
 
         // Set length if it is a key
@@ -330,9 +331,14 @@ void PdfObject::forceCreateStream()
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Tried to get stream of non-dictionary object");
 
     if (m_Document == nullptr)
-        m_Stream.reset(new PdfMemoryObjectStream(*this));
+    {
+        m_Stream.reset(new PdfObjectStream(*this,
+            unique_ptr<PdfObjectStreamProvider>(new PdfMemoryObjectStream())));
+    }
     else
-        m_Stream = m_Document->GetObjects().CreateStream(*this);
+    {
+        m_Stream.reset(new PdfObjectStream(*this, m_Document->GetObjects().CreateStream()));
+    }
 }
 
 PdfObjectStream* PdfObject::getStream()
@@ -420,25 +426,6 @@ void PdfObject::SetParent(PdfDataContainer& parent)
     m_Parent = &parent;
     auto document = parent.GetObjectDocument();
     SetDocument(document);
-}
-
-void PdfObject::MoveStreamFrom(PdfObject& obj)
-{
-    PDFMM_ASSERT(m_IsDelayedLoadDone && m_Variant.GetDataType() == PdfDataType::Dictionary);
-    moveStreamFrom(obj);
-
-    // Fix the /Filter key for both objects after
-    // the stream has been moved
-    // TODO: We could optimize and avoid checking
-    // that both objects are dictionaries
-    auto& dict = obj.GetDictionary();
-    auto filter = dict.FindKey(PdfName::KeyFilter);
-    if (filter != nullptr)
-    {
-        m_Variant.GetDictionary().AddKey(PdfName::KeyFilter, *filter);
-        dict.RemoveKey(PdfName::KeyFilter);
-    }
-    m_IsDelayedLoadStreamDone = true;
 }
 
 // NOTE: Don't copy parent document/container and indirect reference.

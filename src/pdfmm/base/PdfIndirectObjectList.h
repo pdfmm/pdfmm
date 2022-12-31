@@ -14,6 +14,7 @@
 
 namespace mm {
 
+class PdfObjectStreamProvider;
 using ReferenceList = std::deque<PdfReference>;
 
 /** A list of PdfObjects that constitutes the indirect object list
@@ -85,7 +86,7 @@ public:
          *
          *  \returns a new stream object
          */
-        virtual std::unique_ptr<PdfObjectStream> CreateStream(PdfObject& parent) = 0;
+        virtual std::unique_ptr<PdfObjectStreamProvider> CreateStream() = 0;
     };
 
 public:
@@ -211,7 +212,7 @@ public:
      *
      *  \returns a new stream object
      */
-    std::unique_ptr<PdfObjectStream> CreateStream(PdfObject& parent);
+    std::unique_ptr<PdfObjectStreamProvider> CreateStream();
 
     /** Can be called to force objects to be written to disk.
      *

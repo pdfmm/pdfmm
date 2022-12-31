@@ -432,16 +432,16 @@ void PdfIndirectObjectList::Detach(Observer& observer)
     }
 }
 
-unique_ptr<PdfObjectStream> PdfIndirectObjectList::CreateStream(PdfObject& parent)
+unique_ptr<PdfObjectStreamProvider> PdfIndirectObjectList::CreateStream()
 {
     if (m_StreamFactory == nullptr)
     {
-        return unique_ptr<PdfObjectStream>(
-            new PdfMemoryObjectStream(parent));
+        return unique_ptr<PdfObjectStreamProvider>(
+            new PdfMemoryObjectStream());
     }
     else
     {
-        return m_StreamFactory->CreateStream(parent);
+        return m_StreamFactory->CreateStream();
     }
 }
 

@@ -490,8 +490,6 @@ private:
 
     void SetParent(PdfDataContainer& parent);
 
-    void MoveStreamFrom(PdfObject& obj);
-
 private:
     void assign(const PdfObject& rhs);
 

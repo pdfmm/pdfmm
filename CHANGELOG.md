@@ -22,7 +22,7 @@
   GetInputStream(), GetOutputStream(). Renamed
   GetFilteredCopy() -> GetUnwrappedCopy()/UnwrapTo().
   They only unwrap non media filters (see PdfImage::DecodeTo
-  for media ones)
+  for media ones). Added proper copy and move assignment operators
 - PdfImage: Added DecodeTo(pixelFormat)
 
 ## Version 0.9.22

@@ -58,19 +58,56 @@ private:
     size_t m_initialLength;
 };
 
-PdfStreamedObjectStream::PdfStreamedObjectStream(PdfObject& parent, OutputStreamDevice& device) :
-    PdfObjectStream(parent),
+PdfStreamedObjectStream::PdfStreamedObjectStream(OutputStreamDevice& device) :
     m_Device(&device),
     m_CurrEncrypt(nullptr),
-    m_Length(0)
+    m_Length(0),
+    m_LengthObj(nullptr)
 {
-    m_LengthObj = &parent.GetDocument()->GetObjects().CreateObject(static_cast<int64_t>(0));
-    GetParent().GetDictionary().AddKey(PdfName::KeyLength, m_LengthObj->GetIndirectReference());
 }
 
-PdfStreamedObjectStream::~PdfStreamedObjectStream()
+void PdfStreamedObjectStream::Init(PdfObject& obj)
 {
-    EnsureClosed();
+    m_LengthObj = &obj.GetDocument()->GetObjects().CreateObject(static_cast<int64_t>(0));
+    obj.GetDictionary().AddKey(PdfName::KeyLength, m_LengthObj->GetIndirectReference());
+}
+
+void PdfStreamedObjectStream::Clear()
+{
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported resetting streamed object stream");
+}
+
+bool PdfStreamedObjectStream::TryCopyFrom(const PdfObjectStreamProvider& rhs)
+{
+    (void)rhs;
+    return false;
+}
+
+bool PdfStreamedObjectStream::TryMoveFrom(PdfObjectStreamProvider&& rhs)
+{
+    (void)rhs;
+    return false;
+}
+
+unique_ptr<InputStream> PdfStreamedObjectStream::GetInputStream(PdfObject& obj)
+{
+    (void)obj;
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported reading from streamed object stream");
+}
+
+unique_ptr<OutputStream> PdfStreamedObjectStream::GetOutputStream(PdfObject& obj)
+{
+    obj.GetDocument()->GetObjects().WriteObject(obj);
+    if (m_CurrEncrypt == nullptr)
+    {
+        return std::make_unique<ObjectOutputStream>(*this, *m_Device, m_Device->GetLength());
+    }
+    else
+    {
+        return std::make_unique<ObjectOutputStream>(*this,
+            m_CurrEncrypt->CreateEncryptionOutputStream(*m_Device, obj.GetIndirectReference()),
+            m_Device->GetLength());
+    }
 }
 
 void PdfStreamedObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt)
@@ -80,24 +117,9 @@ void PdfStreamedObjectStream::Write(OutputStream& stream, const PdfStatefulEncry
     // Do nothing
 }
 
-unique_ptr<InputStream> PdfStreamedObjectStream::getInputStream()
+size_t PdfStreamedObjectStream::GetLength()
 {
-    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
-}
-
-unique_ptr<OutputStream> PdfStreamedObjectStream::getOutputStream()
-{
-    GetParent().GetDocument()->GetObjects().WriteObject(GetParent());
-    if (m_CurrEncrypt == nullptr)
-    {
-        return std::make_unique<ObjectOutputStream>(*this, *m_Device, m_Device->GetLength());
-    }
-    else
-    {
-        return std::make_unique<ObjectOutputStream>(*this,
-            m_CurrEncrypt->CreateEncryptionOutputStream(*m_Device, GetParent().GetIndirectReference()),
-            m_Device->GetLength());
-    }
+    return m_Length;
 }
 
 void PdfStreamedObjectStream::FinishOutput(size_t initialLength)
@@ -112,15 +134,4 @@ void PdfStreamedObjectStream::FinishOutput(size_t initialLength)
 void PdfStreamedObjectStream::SetEncrypted(PdfEncrypt& encrypt)
 {
     m_CurrEncrypt = &encrypt;
-}
-
-size_t PdfStreamedObjectStream::GetLength() const
-{
-    return m_Length;
-}
-
-PdfStreamedObjectStream& PdfStreamedObjectStream::operator=(const PdfStreamedObjectStream& rhs)
-{
-    CopyDataFrom(rhs);
-    return *this;
 }

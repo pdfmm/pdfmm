@@ -16,38 +16,51 @@
 using namespace std;
 using namespace mm;
 
-PdfMemoryObjectStream::PdfMemoryObjectStream(PdfObject& parent)
-    : PdfObjectStream(parent)
+PdfMemoryObjectStream::PdfMemoryObjectStream()
 {
 }
 
-PdfMemoryObjectStream::~PdfMemoryObjectStream()
+void PdfMemoryObjectStream::Init(PdfObject& obj)
 {
-    EnsureClosed();
+    (void)obj;
 }
 
-unique_ptr<InputStream> PdfMemoryObjectStream::getInputStream()
-{
-    return unique_ptr<InputStream>(new SpanStreamDevice(m_buffer));
-}
-
-unique_ptr<OutputStream> PdfMemoryObjectStream::getOutputStream()
+void PdfMemoryObjectStream::Clear()
 {
     m_buffer.clear();
-    return unique_ptr<OutputStream>(new StringStreamDevice(m_buffer));
 }
 
-void PdfMemoryObjectStream::CopyDataFrom(const PdfObjectStream& rhs)
+bool PdfMemoryObjectStream::TryCopyFrom(const PdfObjectStreamProvider& rhs)
 {
     const PdfMemoryObjectStream* memstream = dynamic_cast<const PdfMemoryObjectStream*>(&rhs);
     if (memstream == nullptr)
-    {
-        PdfObjectStream::operator=(rhs);
-        return;
-    }
+        return false;
 
     m_buffer = memstream->m_buffer;
-    CopyFrom(rhs);
+    return true;
+}
+
+bool PdfMemoryObjectStream::TryMoveFrom(PdfObjectStreamProvider&& rhs)
+{
+    PdfMemoryObjectStream* memstream = dynamic_cast<PdfMemoryObjectStream*>(&rhs);
+    if (memstream == nullptr)
+        return false;
+
+    m_buffer = std::move(memstream->m_buffer);
+    return true;
+}
+
+unique_ptr<InputStream> PdfMemoryObjectStream::GetInputStream(PdfObject& obj)
+{
+    (void)obj;
+    return unique_ptr<InputStream>(new SpanStreamDevice(m_buffer));
+}
+
+unique_ptr<OutputStream> PdfMemoryObjectStream::GetOutputStream(PdfObject& obj)
+{
+    (void)obj;
+    m_buffer.clear();
+    return unique_ptr<OutputStream>(new StringStreamDevice(m_buffer));
 }
 
 void PdfMemoryObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt)
@@ -68,18 +81,7 @@ void PdfMemoryObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt
     stream.Flush();
 }
 
-const char* PdfMemoryObjectStream::GetData() const
-{
-    return m_buffer.data();
-}
-
-size_t PdfMemoryObjectStream::GetLength() const
+size_t PdfMemoryObjectStream::GetLength()
 {
     return m_buffer.size();
-}
-
-PdfMemoryObjectStream& PdfMemoryObjectStream::operator=(const PdfMemoryObjectStream& rhs)
-{
-    CopyDataFrom(rhs);
-    return *this;
 }

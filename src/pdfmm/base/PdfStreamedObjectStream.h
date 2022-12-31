@@ -8,7 +8,7 @@
 
 #include "PdfDeclarations.h"
 
-#include "PdfObjectStream.h"
+#include "PdfObjectStreamProvider.h"
 
 namespace mm {
 
@@ -28,7 +28,7 @@ class OutputStream;
  *  \see PdfIndirectObjectList
  *  \see PdfObjectStream
  */
-class PDFMM_API PdfStreamedObjectStream final : public PdfObjectStream
+class PDFMM_API PdfStreamedObjectStream final : public PdfObjectStreamProvider
 {
     class ObjectOutputStream;
     friend class ObjectOutputStream;
@@ -39,14 +39,28 @@ private:
      *  The stream will be deleted along with the parent.
      *  This constructor will be called by PdfObject::Stream() for you.
      *
-     *  \param parent parent object
      *  \param device output device
      */
-    PdfStreamedObjectStream(PdfObject& parent, OutputStreamDevice& device);
+    PdfStreamedObjectStream(OutputStreamDevice& device);
 
 public:
-    ~PdfStreamedObjectStream();
+    void Init(PdfObject& obj) override;
 
+    void Clear() override;
+
+    bool TryCopyFrom(const PdfObjectStreamProvider& rhs) override;
+
+    bool TryMoveFrom(PdfObjectStreamProvider&& rhs) override;
+
+    std::unique_ptr<InputStream> GetInputStream(PdfObject& ob) override;
+
+    std::unique_ptr<OutputStream> GetOutputStream(PdfObject& ob) override;
+
+    void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) override;
+
+    size_t GetLength() override;
+
+private:
     /** Set an encryption object which is used to encrypt
      *  all data written to this stream.
      *
@@ -54,17 +68,6 @@ public:
      */
     void SetEncrypted(PdfEncrypt& encrypt);
 
-    void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) override;
-
-    size_t GetLength() const override;
-
-    PdfStreamedObjectStream& operator=(const PdfStreamedObjectStream& rhs);
-
-protected:
-    std::unique_ptr<InputStream> getInputStream() override;
-    std::unique_ptr<OutputStream> getOutputStream() override;
-
-private:
     void FinishOutput(size_t initialLength);
 
 private:
