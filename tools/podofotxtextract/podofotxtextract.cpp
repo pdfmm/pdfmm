@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
             page.ExtractTextTo(entries);
 
             for (auto& entry : entries)
-                printf("(%.3f,%.3f) %s \n", entry.X, entry.Y, entry.Text);
+                printf("(%.3f,%.3f) %s \n", entry.X, entry.Y, entry.Text.data());
         }
     }
     catch (PdfError& e)
