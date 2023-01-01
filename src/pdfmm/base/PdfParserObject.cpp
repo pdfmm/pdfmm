@@ -37,7 +37,7 @@ PdfParserObject::PdfParserObject(InputStreamDevice& device, ssize_t offset)
 
 PdfParserObject::PdfParserObject(PdfDocument* doc, const PdfReference& indirectReference,
     InputStreamDevice& device, ssize_t offset) :
-    PdfObject(PdfVariant(PdfVariant::NullValue), indirectReference, true),
+    PdfObject(PdfVariant(), indirectReference, true),
     m_device(&device),
     m_Encrypt(nullptr),
     m_IsTrailer(false),

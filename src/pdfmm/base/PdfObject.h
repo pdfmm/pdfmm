@@ -43,6 +43,9 @@ class PDFMM_API PdfObject
     friend class PdfParser;
 
 public:
+    static PdfObject Null;
+
+public:
 
     /** Create a PDF object with an empty PdfDictionary.
      */

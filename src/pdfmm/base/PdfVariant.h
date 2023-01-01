@@ -40,7 +40,7 @@ private:
 
 public:
 
-    static PdfVariant NullValue;
+    static PdfVariant Null;
 
     /** Construct an empty variant type
      *  IsNull() will return true.

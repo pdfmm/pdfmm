@@ -31,7 +31,7 @@ private:
     PdfObjectInputStream(PdfObjectStream& stream, bool raw);
 public:
     const PdfFilterList& GetMediaFilters() const { return m_MediaFilters; }
-    const PdfDictionary* GetMediaDecodeParms() const { return m_MediaDecodeParms; }
+    const std::vector<const PdfDictionary*>& GetMediaDecodeParms() const { return m_MediaDecodeParms; }
 protected:
     size_t readBuffer(char* buffer, size_t size, bool& eof) override;
     bool readChar(char& ch) override;
@@ -41,7 +41,7 @@ private:
     PdfObjectStream* m_stream;
     std::unique_ptr<InputStream> m_input;
     PdfFilterList m_MediaFilters;
-    const PdfDictionary* m_MediaDecodeParms;
+    std::vector<const PdfDictionary*> m_MediaDecodeParms;
 };
 
 class PdfObjectOutputStream : public OutputStream
@@ -215,7 +215,7 @@ private:
     void ensureClosed() const;
 
     std::unique_ptr<InputStream> getInputStream(bool raw, PdfFilterList& mediaFilters,
-        const PdfDictionary*& decodeParms);
+        std::vector<const PdfDictionary*>& decodeParms);
 
     void setData(InputStream& stream, PdfFilterList filters, ssize_t size, bool markObjectDirty);
 

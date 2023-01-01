@@ -136,7 +136,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
                 bool blackIs1 = false;
                 int columns = 1728;
                 int rows = 0;
-                auto decodeParms = istream.GetMediaDecodeParms();
+                auto decodeParms = istream.GetMediaDecodeParms()[0];
                 if (decodeParms != nullptr)
                 {
                     k = (int)decodeParms->FindKeyAs<int64>("K");

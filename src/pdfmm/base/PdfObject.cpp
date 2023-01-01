@@ -18,6 +18,8 @@
 using namespace std;
 using namespace mm;
 
+PdfObject PdfObject::Null;
+
 PdfObject::PdfObject()
     : PdfObject(PdfDictionary(), PdfReference(), false) { }
 

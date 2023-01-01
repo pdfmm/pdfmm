@@ -120,17 +120,19 @@ private:
 class PdfBufferedDecodeStream : public InputStream, private OutputStream
 {
 public:
-    PdfBufferedDecodeStream(const shared_ptr<InputStream>& inputStream, const PdfFilterList& filters, const PdfDictionary* decodeParms)
+    PdfBufferedDecodeStream(const shared_ptr<InputStream>& inputStream, const PdfFilterList& filters,
+            const vector<const PdfDictionary*>& decodeParms)
         : m_inputEof(false), m_inputStream(inputStream), m_offset(0)
     {
-        PdfFilterList::const_reverse_iterator it = filters.rbegin();
-        m_filterStream.reset(new PdfFilteredDecodeStream(*this, *it, decodeParms));
-        it++;
+        PDFMM_INVARIANT(filters.size() != 0);
+        int i = (int)filters.size() - 1;
+        m_filterStream.reset(new PdfFilteredDecodeStream(*this, filters[i], decodeParms[i]));
+        i--;
 
-        while (it != filters.rend())
+        while (i >= 0)
         {
-            m_filterStream.reset(new PdfFilteredDecodeStream(std::move(m_filterStream), *it, decodeParms));
-            it++;
+            m_filterStream.reset(new PdfFilteredDecodeStream(std::move(m_filterStream), filters[i], decodeParms[i]));
+            i--;
         }
     }
 protected:
@@ -299,7 +301,7 @@ unique_ptr<OutputStream> PdfFilterFactory::CreateEncodeStream(const shared_ptr<O
 }
 
 unique_ptr<InputStream> PdfFilterFactory::CreateDecodeStream(const shared_ptr<InputStream>& stream,
-    const PdfFilterList& filters, const PdfDictionary* decodeParms)
+    const PdfFilterList& filters, const std::vector<const PdfDictionary*>& decodeParms)
 {
     PDFMM_RAISE_LOGIC_IF(stream == nullptr, "Cannot create an DecodeStream from an empty stream");
     PDFMM_RAISE_LOGIC_IF(filters.size() == 0, "Cannot create an DecodeStream from an empty list of filters");
