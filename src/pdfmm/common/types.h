@@ -158,6 +158,10 @@ namespace COMMON_NAMESPACE
     };
 
     using datahandle = datahandle_t<>;
+
+    // https://artificial-mind.net/blog/2020/10/03/always-false
+    template <class... T>
+    constexpr bool always_false = false;
 }
 
 #endif // COMMON_TYPES_H

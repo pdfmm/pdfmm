@@ -539,14 +539,14 @@ private:
         static T Get(const PdfObject& obj)
         {
             (void)obj;
-            throw PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__);
+            static_assert(always_false<T>::value, "Unsupported type");
         }
 
         static bool TryGet(const PdfObject& obj, T& value)
         {
             (void)obj;
             (void)value;
-            throw PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__);
+            static_assert(always_false<T>::value, "Unsupported type");
         }
     };
 
