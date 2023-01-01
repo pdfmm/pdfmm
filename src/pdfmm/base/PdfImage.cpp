@@ -139,12 +139,12 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
                 auto decodeParms = istream.GetMediaDecodeParms()[0];
                 if (decodeParms != nullptr)
                 {
-                    k = (int)decodeParms->FindKeyAs<int64>("K");
+                    k = (int)decodeParms->FindKeyAs<int64_t>("K");
                     endOfLine = decodeParms->FindKeyAs<bool>("EndOfLine");
                     encodedByteAlign = decodeParms->FindKeyAs<bool>("EncodedByteAlign");
                     blackIs1 = decodeParms->FindKeyAs<bool>("BlackIs1");
-                    columns = (int)decodeParms->FindKeyAs<int64>("Columns", 1728);
-                    rows = (int)decodeParms->FindKeyAs<int64>("Rows");
+                    columns = (int)decodeParms->FindKeyAs<int64_t>("Columns", 1728);
+                    rows = (int)decodeParms->FindKeyAs<int64_t>("Rows");
                 }
                 auto decoder = fxcodec::FaxModule::CreateDecoder(
                     pdfium::span<const uint8_t>((const uint8_t *)imageData.data(), imageData.size()),

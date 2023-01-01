@@ -539,14 +539,16 @@ private:
         static T Get(const PdfObject& obj)
         {
             (void)obj;
-            static_assert(always_false<T>::value, "Unsupported type");
+            static_assert(always_false<T>, "Unsupported type");
+            return T{ };
         }
 
         static bool TryGet(const PdfObject& obj, T& value)
         {
             (void)obj;
             (void)value;
-            static_assert(always_false<T>::value, "Unsupported type");
+            static_assert(always_false<T>, "Unsupported type");
+            return false;
         }
     };
 
