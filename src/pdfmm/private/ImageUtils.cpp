@@ -108,6 +108,7 @@ void utls::FetchImageBW(OutputStream& stream, unsigned width, unsigned heigth, P
     }
 }
 
+#ifdef PDFMM_HAVE_JPEG_LIB
 void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format,
     jpeg_decompress_struct* ctx, JSAMPARRAY jScanLine, const charbuff& smaskData, charbuff& scanLine)
 {
@@ -168,6 +169,7 @@ void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format,
     }
 
 }
+#endif // PDFMM_HAVE_JPEG_LIB
 
 void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat format,
     const unsigned char* srcScanLine)
