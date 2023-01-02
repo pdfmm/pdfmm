@@ -19,8 +19,8 @@ else()
 endif()
 
 set(PDFMM_VERSION_MAJOR "0" CACHE STRING "Major part of pdfmm version number")
-set(PDFMM_VERSION_MINOR "9" CACHE STRING "Minor part of pdfmm version number")
-set(PDFMM_VERSION_PATCH "23" CACHE STRING "Patchlevel part of pdfmm version number")
+set(PDFMM_VERSION_MINOR "10" CACHE STRING "Minor part of pdfmm version number")
+set(PDFMM_VERSION_PATCH "0" CACHE STRING "Patchlevel part of pdfmm version number")
 set(PDFMM_SOVERSION "${PDFMM_VERSION_MAJOR}.${PDFMM_VERSION_MINOR}.${PDFMM_VERSION_PATCH}")
 set(PDFMM_LIBVERSION "${PDFMM_SOVERSION}")
 
