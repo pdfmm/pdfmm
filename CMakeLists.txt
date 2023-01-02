@@ -240,4 +240,8 @@ set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/pdfmm/pdfmm")
 set(CPACK_PACKAGE_VENDOR "Francesco Pretto")
 set(CPACK_PACKAGE_CONTACT "ceztko@gmail.com")
 set(CPACK_PACKAGE_VERSION ${PDFMM_LIBVERSION})
+if (WIN32)
+    # Set MSI generation
+    set(CPACK_GENERATOR "WIX")
+endif()
 include(CPack)
