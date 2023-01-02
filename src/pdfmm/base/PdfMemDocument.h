@@ -176,14 +176,6 @@ public:
      */
     void SetEncrypted(const PdfEncrypt& encrypt);
 
-    /** Copies one or more pages from another PdfMemDocument to this document
-     *  \param doc the document to append
-     *  \param atIndex the first page number to copy (0-based)
-     *  \param pageCount the number of pages to copy
-     *  \returns this document
-     */
-    const PdfMemDocument& InsertPages(const PdfMemDocument& doc, unsigned atIndex, unsigned pageCount);
-
     /** Tries to free all memory allocated by the given
      *  PdfObject (variables and streams) and reads
      *  it from disk again if it is requested another time.
@@ -239,17 +231,6 @@ private:
 
 private:
     void loadFromDevice(const std::shared_ptr<InputStreamDevice>& device, const std::string_view& password);
-
-    /** Deletes one or more pages from this document
-     *  It does NOT remove any PdfObjects from memory - just the reference from the pages tree.
-     *  If you want to delete resources of this page, you have to delete them yourself,
-     *  but the resources might be used by other pages, too.
-     *
-     *  \param atIndex the first page number to delete (0-based)
-     *  \param pageCount the number of pages to delete
-     *  \returns this document
-     */
-    void deletePages(unsigned atIndex, unsigned pageCount);
 
     /** Internal method to load all objects from a PdfParser object.
      *  The objects will be removed from the parser and are now

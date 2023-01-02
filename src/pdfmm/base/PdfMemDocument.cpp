@@ -320,54 +320,6 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
     GetFonts().EmbedFonts();
 }
 
-void PdfMemDocument::deletePages(unsigned atIndex, unsigned pageCount)
-{
-    for (unsigned i = 0; i < pageCount; i++)
-        this->GetPages().RemovePageAt(atIndex);
-}
-
-const PdfMemDocument& PdfMemDocument::InsertPages(const PdfMemDocument& doc, unsigned atIndex, unsigned pageCount)
-{
-    /*
-      This function works a bit different than one might expect.
-      Rather than copying one page at a time - we copy the ENTIRE document
-      and then delete the pages we aren't interested in.
-
-      We do this because
-      1) SIGNIFICANTLY simplifies the process
-      2) Guarantees that shared objects aren't copied multiple times
-      3) offers MUCH faster performance for the common cases
-
-      HOWEVER: because pdfmm doesn't currently do any sort of "object garbage collection" during
-      a Write() - we will end up with larger documents, since the data from unused pages
-      will also be in there.
-    */
-
-    // calculate preliminary "left" and "right" page ranges to delete
-    // then offset them based on where the pages were inserted
-    // NOTE: some of this will change if/when we support insertion at locations
-    //       OTHER than the end of the document!
-    unsigned leftStartPage = 0;
-    unsigned leftCount = atIndex;
-    unsigned rightStartPage = atIndex + pageCount;
-    unsigned rightCount = doc.GetPages().GetCount() - rightStartPage;
-    unsigned pageOffset = this->GetPages().GetCount();
-
-    leftStartPage += pageOffset;
-    rightStartPage += pageOffset;
-
-    // append in the whole document
-    this->Append(doc);
-
-    // delete
-    if (rightCount > 0)
-        this->deletePages(rightStartPage, rightCount);
-    if (leftCount > 0)
-        this->deletePages(leftStartPage, leftCount);
-
-    return *this;
-}
-
 void PdfMemDocument::SetEncrypted(const string& userPassword, const string& ownerPassword,
     PdfPermissions protection, PdfEncryptAlgorithm algorithm,
     PdfKeyLength keyLength)

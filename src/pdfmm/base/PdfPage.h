@@ -53,7 +53,7 @@ private:
      *  \param size a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \param parent add the page to this parent
      */
-    PdfPage(PdfDocument& parent, const PdfRect& size);
+    PdfPage(PdfDocument& parent, unsigned index, const PdfRect& size);
 
     /** Create a PdfPage based on an existing PdfObject
      *  \param obj an existing PdfObject
@@ -63,7 +63,7 @@ private:
      *                       The last object in the list is the
      *                       most direct parent of this page.
      */
-    PdfPage(PdfObject& obj, const std::deque<PdfObject*>& listOfParents);
+    PdfPage(PdfObject& obj, unsigned index, const std::deque<PdfObject*>& listOfParents);
 
 public:
     void ExtractTextTo(std::vector<PdfTextEntry>& entries,
@@ -157,6 +157,10 @@ public:
      */
     void SetRotationRaw(int rotation);
 
+    /** Move the page at the given index
+     */
+    void MoveAt(unsigned index);
+
     template <typename TField>
     TField& CreateField(const std::string_view& name, const PdfRect& rect);
 
@@ -175,6 +179,7 @@ public:
         PdfColorSpace alternateColorSpace = PdfColorSpace::DeviceRGB);
 
 public:
+    unsigned GetIndex() const { return m_Index; }
     PdfContents& GetOrCreateContents();
     PdfResources& GetOrCreateResources() override;
     inline const PdfContents* GetContents() const { return m_Contents.get(); }
@@ -223,6 +228,7 @@ private:
     const PdfObject* GetContentsObject() const = delete;
 
 private:
+    unsigned m_Index;
     std::unique_ptr<PdfContents> m_Contents;
     std::unique_ptr<PdfResources> m_Resources;
     PdfAnnotationCollection m_Annotations;

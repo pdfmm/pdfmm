@@ -30,7 +30,7 @@ PdfXObjectForm::PdfXObjectForm(PdfObject& obj)
         m_Resources.reset(new PdfResources(*resources));
 }
 
-void PdfXObjectForm::FillXObjectFromPage(const PdfPage& page, bool useTrimBox)
+void PdfXObjectForm::FillFromPage(const PdfPage& page, bool useTrimBox)
 {
     // After filling set correct BBox, independent of rotation
     m_Rect = GetDocument().FillXObjectFromPage(*this, page, useTrimBox);

@@ -103,7 +103,7 @@ void PdfDocument::Init()
         m_AcroForm.reset(new PdfAcroForm(*acroformObj));
 }
 
-void PdfDocument::Append(const PdfDocument& doc)
+void PdfDocument::AppendDocumentPages(const PdfDocument& doc)
 {
     append(doc, true);
 }
@@ -133,7 +133,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
 
         mm::LogMessage(PdfLogSeverity::Information, "Fixing references in {} {} R by {}",
             newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
-        FixObjectReferences(*newObj, difference);
+        fixObjectReferences(*newObj, difference);
     }
 
     if (appendAll)
@@ -163,14 +163,14 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
                 if (attribute != nullptr)
                 {
                     PdfObject attributeCopy(*attribute);
-                    FixObjectReferences(attributeCopy, difference);
+                    fixObjectReferences(attributeCopy, difference);
                     obj.GetDictionary().AddKey(*inherited, attributeCopy);
                 }
 
                 inherited++;
             }
 
-            m_Pages->InsertPage(m_Pages->GetCount(), &obj);
+            m_Pages->InsertPageAt(m_Pages->GetCount(), obj);
         }
 
         // append all outlines
@@ -192,7 +192,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
     // ToDictionary -> then iteratate over all keys and add them to the new one
 }
 
-void PdfDocument::InsertExistingPageAt(const PdfDocument& doc, unsigned pageIndex, unsigned atIndex)
+void PdfDocument::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex)
 {
     // copy of PdfDocument::Append, only restricts which page to add
     unsigned difference = static_cast<unsigned>(m_Objects.GetSize() + m_Objects.GetFreeObjects().size());
@@ -221,7 +221,7 @@ void PdfDocument::InsertExistingPageAt(const PdfDocument& doc, unsigned pageInde
 
         mm::LogMessage(PdfLogSeverity::Information, "Fixing references in {} {} R by {}",
             newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
-        FixObjectReferences(*newObj, difference);
+        fixObjectReferences(*newObj, difference);
     }
 
     const PdfName inheritableAttributes[] = {
@@ -252,14 +252,14 @@ void PdfDocument::InsertExistingPageAt(const PdfDocument& doc, unsigned pageInde
             if (attribute != nullptr)
             {
                 PdfObject attributeCopy(*attribute);
-                FixObjectReferences(attributeCopy, difference);
+                fixObjectReferences(attributeCopy, difference);
                 obj.GetDictionary().AddKey(*inherited, attributeCopy);
             }
 
             inherited++;
         }
 
-        m_Pages->InsertPage(atIndex, &obj);
+        m_Pages->InsertPageAt(atIndex, obj);
     }
 
     // append all outlines
@@ -278,6 +278,52 @@ void PdfDocument::InsertExistingPageAt(const PdfDocument& doc, unsigned pageInde
 
     // TODO: merge name trees
     // ToDictionary -> then iteratate over all keys and add them to the new one
+}
+
+void PdfDocument::AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount)
+{
+    /*
+      This function works a bit different than one might expect.
+      Rather than copying one page at a time - we copy the ENTIRE document
+      and then delete the pages we aren't interested in.
+
+      We do this because
+      1) SIGNIFICANTLY simplifies the process
+      2) Guarantees that shared objects aren't copied multiple times
+      3) offers MUCH faster performance for the common cases
+
+      HOWEVER: because pdfmm doesn't currently do any sort of "object garbage collection" during
+      a Write() - we will end up with larger documents, since the data from unused pages
+      will also be in there.
+    */
+
+    // calculate preliminary "left" and "right" page ranges to delete
+    // then offset them based on where the pages were inserted
+    // NOTE: some of this will change if/when we support insertion at locations
+    //       OTHER than the end of the document!
+    unsigned leftStartPage = 0;
+    unsigned leftCount = pageIndex;
+    unsigned rightStartPage = pageIndex + pageCount;
+    unsigned rightCount = doc.GetPages().GetCount() - rightStartPage;
+    unsigned pageOffset = this->GetPages().GetCount();
+
+    leftStartPage += pageOffset;
+    rightStartPage += pageOffset;
+
+    // append in the whole document
+    this->AppendDocumentPages(doc);
+
+    // delete
+    if (rightCount > 0)
+        this->deletePages(rightStartPage, rightCount);
+    if (leftCount > 0)
+        this->deletePages(leftStartPage, leftCount);
+}
+
+void PdfDocument::deletePages(unsigned atIndex, unsigned pageCount)
+{
+    for (unsigned i = 0; i < pageCount; i++)
+        this->GetPages().RemovePageAt(atIndex);
 }
 
 PdfRect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox)
@@ -377,7 +423,7 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& pa
     return box;
 }
 
-void PdfDocument::FixObjectReferences(PdfObject& obj, int difference)
+void PdfDocument::fixObjectReferences(PdfObject& obj, int difference)
 {
     if (obj.IsDictionary())
     {
@@ -391,7 +437,7 @@ void PdfDocument::FixObjectReferences(PdfObject& obj, int difference)
             else if (pair.second.IsDictionary() ||
                 pair.second.IsArray())
             {
-                FixObjectReferences(pair.second, difference);
+                fixObjectReferences(pair.second, difference);
             }
         }
     }
@@ -406,7 +452,7 @@ void PdfDocument::FixObjectReferences(PdfObject& obj, int difference)
             }
             else if (child.IsDictionary() || child.IsArray())
             {
-                FixObjectReferences(child, difference);
+                fixObjectReferences(child, difference);
             }
         }
     }

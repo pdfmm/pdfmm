@@ -33,6 +33,9 @@ either assume UTF-8 and/or checks for used codepoints
 - Move IO System headers to common/
 - Extract Matrix PdfMath.h -> Matrix.h, move it to common/
 - PdfToggleButton: Add proper IsChecked/ExportValue handling
+- Review PdfPage::SetICCProfile()
+- Review PdfPageCollection::AppendDocumentPages(),
+  PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt()
 
 ### After 1.0
 - Added version of PdfFont::TryGetSubstituteFont for rendering

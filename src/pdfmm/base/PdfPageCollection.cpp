@@ -69,7 +69,7 @@ PdfPage& PdfPageCollection::getPage(unsigned index)
     PdfObject* pageObj = this->getPageNode(index, this->GetRoot(), parents);
     if (pageObj != nullptr)
     {
-        page = new PdfPage(*pageObj, parents);
+        page = new PdfPage(*pageObj, index, parents);
         m_cache.SetPage(index, page);
         return *page;
     }
@@ -102,13 +102,13 @@ PdfPage& PdfPageCollection::getPage(const PdfReference& ref)
     PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
 }
 
-void PdfPageCollection::InsertPage(unsigned atIndex, PdfObject* pageObj)
+void PdfPageCollection::InsertPageAt(unsigned atIndex, PdfObject& pageObj)
 {
-    vector<PdfObject*> objs = { pageObj };
-    InsertPage(atIndex, objs);
+    vector<PdfObject*> objs = { &pageObj };
+    InsertPagesAt(atIndex, objs);
 }
 
-void PdfPageCollection::InsertPage(unsigned atIndex, const vector<PdfObject*>& pages)
+void PdfPageCollection::InsertPagesAt(unsigned atIndex, const vector<PdfObject*>& pages)
 {
     bool insertAfterPivot = false;
     PdfObjectList parents;
@@ -161,23 +161,38 @@ void PdfPageCollection::InsertPage(unsigned atIndex, const vector<PdfObject*>& p
 
 PdfPage& PdfPageCollection::CreatePage(const PdfRect& size)
 {
-    auto page = new PdfPage(*GetRoot().GetDocument(), size);
     unsigned index = this->GetCount();
-    InsertPage(index, &page->GetObject());
+    auto page = new PdfPage(*GetRoot().GetDocument(), index, size);
+    InsertPageAt(index, page->GetObject());
     m_cache.SetPage(index, page);
     return *page;
 }
 
 PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, const PdfRect& size)
 {
-    auto page = new PdfPage(*GetRoot().GetDocument(), size);
     unsigned pageCount = this->GetCount();
     if (atIndex > pageCount)
         atIndex = pageCount;
 
-    InsertPage(atIndex, &page->GetObject());
+    auto page = new PdfPage(*GetRoot().GetDocument(), atIndex, size);
+    InsertPageAt(atIndex, page->GetObject());
     m_cache.SetPage(atIndex, page);
     return *page;
+}
+
+void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc)
+{
+    return GetDocument().AppendDocumentPages(doc);
+}
+
+void PdfPageCollection::AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount)
+{
+    return GetDocument().AppendDocumentPages(doc, pageIndex, pageCount);
+}
+
+void PdfPageCollection::InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex)
+{
+    return GetDocument().InsertDocumentPageAt(atIndex, doc, pageIndex);
 }
 
 void PdfPageCollection::RemovePageAt(unsigned atIndex)

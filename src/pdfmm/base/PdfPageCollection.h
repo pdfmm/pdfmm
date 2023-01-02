@@ -26,7 +26,7 @@ class PdfRect;
 class PDFMM_API PdfPageCollection final : public PdfDictionaryElement
 {
     friend class PdfDocument;
-    using PdfObjectList = std::deque<PdfObject*>;
+    friend class PdfPage;
 
 public:
     /** Construct a new PdfPageTree
@@ -87,6 +87,25 @@ public:
      */
     PdfPage& CreatePageAt(unsigned atIndex, const PdfRect& size);
 
+    /** Appends another PdfDocument to this document.
+     *  \param doc the document to append
+     */
+    void AppendDocumentPages(const PdfDocument& doc);
+
+    /** Copies one or more pages from another PdfMemDocument to this document
+     *  \param doc the document to append
+     *  \param atIndex the first page number to copy (0-based)
+     *  \param pageCount the number of pages to copy
+     */
+    void AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount);
+
+    /** Inserts existing page from another PdfDocument to this document.
+     *  \param atIndex index at which to add the page in this document
+     *  \param doc the document to append from
+     *  \param pageIndex index of page to append from doc
+     */
+    void InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex);
+
     /**  Delete the specified page object from the internal pages tree.
      *   It does NOT remove any PdfObjects from memory - just the reference from the tree
      *
@@ -104,13 +123,16 @@ private:
      * Insert page at the given index
      * \remarks Can be used by PdfDocument
      */
-    void InsertPage(unsigned atIndex, PdfObject* pageObj);
+    void InsertPageAt(unsigned atIndex, PdfObject& pageObj);
 
     /**
      * Insert pages at the given index
      * \remarks Can be used by PdfDocument
      */
-    void InsertPage(unsigned atIndex, const std::vector<PdfObject*>& pages);
+    void InsertPagesAt(unsigned atIndex, const std::vector<PdfObject*>& pages);
+
+private:
+    using PdfObjectList = std::deque<PdfObject*>;
 
 private:
     PdfPage& getPage(unsigned index);

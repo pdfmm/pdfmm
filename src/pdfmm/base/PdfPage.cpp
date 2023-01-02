@@ -21,14 +21,21 @@ using namespace mm;
 static int normalize(int value, int start, int end);
 static PdfResources* getResources(PdfObject& obj, const deque<PdfObject*>& listOfParents);
 
-PdfPage::PdfPage(PdfDocument& parent, const PdfRect& size)
-    : PdfDictionaryElement(parent, "Page"), m_Contents(nullptr), m_Annotations(*this)
+PdfPage::PdfPage(PdfDocument& parent, unsigned index, const PdfRect& size) :
+    PdfDictionaryElement(parent, "Page"),
+    m_Index(index),
+    m_Contents(nullptr),
+    m_Annotations(*this)
 {
     initNewPage(size);
 }
 
-PdfPage::PdfPage(PdfObject& obj, const deque<PdfObject*>& listOfParents)
-    : PdfDictionaryElement(obj), m_Contents(nullptr), m_Resources(::getResources(obj, listOfParents)), m_Annotations(*this)
+PdfPage::PdfPage(PdfObject& obj, unsigned index, const deque<PdfObject*>& listOfParents) :
+    PdfDictionaryElement(obj),
+    m_Index(index),
+    m_Contents(nullptr),
+    m_Resources(::getResources(obj, listOfParents)),
+    m_Annotations(*this)
 {
     PdfObject* contents = obj.GetDictionary().FindKey("Contents");
     if (contents != nullptr)
@@ -201,6 +208,24 @@ void PdfPage::SetRotationRaw(int rotation)
         PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     this->GetDictionary().AddKey("Rotate", PdfVariant(static_cast<int64_t>(rotation)));
+}
+
+void PdfPage::MoveAt(unsigned index)
+{
+    // TODO: CHECK-ME FOR CORRECT WORKING
+    auto& doc = GetDocument();
+    auto& pages = doc.GetPages();
+    unsigned fromIndex = m_Index;
+    pages.InsertDocumentPageAt(index, doc, m_Index);
+    if (index < fromIndex)
+    {
+        // If we inserted the page before the old 
+        // position we have to increment the from position
+        fromIndex++;
+    }
+
+    pages.RemovePageAt(fromIndex);
+    m_Index = fromIndex;
 }
 
 PdfField& PdfPage::CreateField(const string_view& name, PdfFieldType fieldType, const PdfRect& rect)

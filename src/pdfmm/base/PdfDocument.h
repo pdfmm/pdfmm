@@ -45,6 +45,7 @@ class PDFMM_API PdfDocument
 {
     friend class PdfMetadata;
     friend class PdfXObjectForm;
+    friend class PdfPageCollection;
 
 public:
     /** Close down/destruct the PdfDocument
@@ -78,20 +79,6 @@ public:
      *  \returns PdfObject the AcroForm dictionary
      */
     PdfAcroForm& GetOrCreateAcroForm(PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::BlackText12pt);
-
-    /** Appends another PdfDocument to this document.
-     *  \param doc the document to append
-     *  \returns this document
-     */
-    void Append(const PdfDocument& doc);
-
-    /** Inserts existing page from another PdfDocument to this document.
-     *  \param doc the document to append from
-     *  \param pageIndex index of page to append from doc
-     *  \param atIndex index at which to add the page in this document
-     *  \returns this document
-     */
-    void InsertExistingPageAt(const PdfDocument& doc, unsigned pageIndex, unsigned atIndex);
 
     /** Attach a file to the document.
      *  \param rFileSpec a file specification
@@ -294,15 +281,6 @@ protected:
      */
     void Init();
 
-    /** Recursively changes every PdfReference in the PdfObject and in any child
-     *  that is either an PdfArray or a direct object.
-     *  The reference is changed so that difference is added to the object number
-     *  of the reference.
-     *  \param obj object to change
-     *  \param difference add this value to every reference that is encountered
-     */
-    void FixObjectReferences(PdfObject& obj, int difference);
-
     /** Clear all internal variables
      *  and reset PdfDocument to an intial state.
      */
@@ -319,8 +297,26 @@ protected:
     virtual void SetPdfVersion(PdfVersion version) = 0;
 
 private:
+    // Called by PdfPageCollection
+    void AppendDocumentPages(const PdfDocument& doc);
+    void InsertDocumentPageAt(unsigned atIndex, const PdfDocument& doc, unsigned pageIndex);
+    void AppendDocumentPages(const PdfDocument& doc, unsigned pageIndex, unsigned pageCount);
+
+    // Called by PdfXObjectForm
     PdfRect FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox);
+
+private:
     void append(const PdfDocument& doc, bool appendAll);
+    /** Recursively changes every PdfReference in the PdfObject and in any child
+     *  that is either an PdfArray or a direct object.
+     *  The reference is changed so that difference is added to the object number
+     *  of the reference.
+     *  \param obj object to change
+     *  \param difference add this value to every reference that is encountered
+     */
+    void fixObjectReferences(PdfObject& obj, int difference);
+
+    void deletePages(unsigned atIndex, unsigned pageCount);
 
 private:
     PdfDocument& operator=(const PdfDocument&) = delete;

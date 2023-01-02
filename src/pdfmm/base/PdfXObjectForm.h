@@ -38,7 +38,7 @@ public:
      *  \param page the document to create the XObject from
      *	\param useTrimBox if true try to use trimbox for size of xobject
      */
-    void FillXObjectFromPage(const PdfPage& page, bool useTrimBox = false);
+    void FillFromPage(const PdfPage& page, bool useTrimBox = false);
 
 public:
     /** Ensure resources initialized on this XObject
