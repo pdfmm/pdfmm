@@ -313,7 +313,7 @@ void PdfPageTest::CreateTestTreeCustom(PdfMemDocument& doc)
 
         for (unsigned j = 0; j < COUNT; j++)
         {
-            unique_ptr<PdfPage> page(new PdfPage(doc, PdfPage::CreateStandardPageSize(PdfPageSize::A4)));
+            unique_ptr<PdfPage> page(new PdfPage(doc, j, PdfPage::CreateStandardPageSize(PdfPageSize::A4)));
             page->GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
                 static_cast<int64_t>(i) * COUNT + j);
 
@@ -339,7 +339,7 @@ vector<unique_ptr<PdfPage>> PdfPageTest::CreateSamplePages(PdfMemDocument& doc, 
     vector<unique_ptr<PdfPage>> pages(pageCount);
     for (unsigned i = 0; i < pageCount; ++i)
     {
-        pages[i].reset(new PdfPage(doc, PdfPage::CreateStandardPageSize(PdfPageSize::A4)));
+        pages[i].reset(new PdfPage(doc, i, PdfPage::CreateStandardPageSize(PdfPageSize::A4)));
         pages[i]->GetObject().GetDictionary().AddKey(TEST_PAGE_KEY, static_cast<int64_t>(i));
 
         PdfPainter painter;
