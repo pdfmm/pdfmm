@@ -120,7 +120,7 @@ void PdfTranslator::setSource(const string& source)
             PdfMemDocument mdoc;
             mdoc.Load(*ms);
             // 			cerr << "Appending "<< mdoc.GetPageCount() << " page(s) of " << *ms  << endl;
-            sourceDoc->InsertPages(mdoc, 0, mdoc.GetPages().GetCount());
+            sourceDoc->GetPages().AppendDocumentPages(mdoc, 0, mdoc.GetPages().GetCount());
         }
     }
 
@@ -145,7 +145,7 @@ void PdfTranslator::addToSource(const string& source)
 
     PdfMemDocument extraDoc;
     extraDoc.Load(source);
-    sourceDoc->InsertPages(extraDoc, 0, extraDoc.GetPages().GetCount());
+    sourceDoc->GetPages().AppendDocumentPages(extraDoc, 0, extraDoc.GetPages().GetCount());
     multiSource.push_back(source);
 
 }
