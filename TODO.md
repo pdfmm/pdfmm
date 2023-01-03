@@ -1,4 +1,4 @@
-### After 0.10
+### 1.0
 - PdfFontManager: Add font load from file/better debugging
   in lookup (eg. to spot found font with different name)
 - Review all page import functions to check correct working/improve
@@ -14,6 +14,8 @@
 - PdfPageCollection: Fix caching (it's very slow at the moment)
 - PdfPageCollection: Add iteration on PdfPage*. See PdfAnnotationCollection
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
+- PdfPage: Add GetFields() iteration
+- PdfDocument: Add GetAnnoationFields()/GetAllFields() iteration
 - Fix PdfFontMetrics handling of symbol encoding
 - Fix/complete handling of text extraction in rotated pages
 - Check PdfWriter should really update doc trailer when saving.
@@ -36,6 +38,8 @@ either assume UTF-8 and/or checks for used codepoints
 - Review PdfPage::SetICCProfile()
 - Review PdfPageCollection::AppendDocumentPages(),
   PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt()
+- PdfPainter: Fix PdfPainter::Arc(),  PdfPainter::getMultiLineTextAsLines
+  Add proper text/graphics state stack check/handling
 
 ### After 1.0
 - Added version of PdfFont::TryGetSubstituteFont for rendering
