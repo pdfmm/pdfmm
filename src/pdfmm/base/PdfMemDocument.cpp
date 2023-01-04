@@ -64,7 +64,7 @@ PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
 {
     auto encryptObj = GetTrailer().GetDictionary().FindKey("Encrypt");
     if (encryptObj != nullptr)
-        m_Encrypt = PdfEncrypt::CreatePdfEncrypt(*encryptObj);
+        m_Encrypt = PdfEncrypt::CreateFromObject(*encryptObj);
 }
 
 void PdfMemDocument::Clear()
@@ -243,7 +243,7 @@ void PdfMemDocument::Save(OutputStreamDevice& device, PdfSaveOptions opts)
     writer.SetSaveOptions(opts);
 
     if (m_Encrypt != nullptr)
-        writer.SetEncrypted(*m_Encrypt);
+        writer.SetEncrypt(*m_Encrypt);
 
     try
     {
@@ -274,7 +274,7 @@ void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
     writer.SetIncrementalUpdate(false);
 
     if (m_Encrypt != nullptr)
-        writer.SetEncrypted(*m_Encrypt);
+        writer.SetEncrypt(*m_Encrypt);
 
     if (m_InitialVersion < this->GetPdfVersion())
     {
@@ -313,16 +313,16 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
     GetFonts().EmbedFonts();
 }
 
-void PdfMemDocument::SetEncrypted(const string& userPassword, const string& ownerPassword,
+void PdfMemDocument::SetEncrypted(const string_view& userPassword, const string_view& ownerPassword,
     PdfPermissions protection, PdfEncryptAlgorithm algorithm,
     PdfKeyLength keyLength)
 {
-    m_Encrypt = PdfEncrypt::CreatePdfEncrypt(userPassword, ownerPassword, protection, algorithm, keyLength);
+    m_Encrypt = PdfEncrypt::Create(userPassword, ownerPassword, protection, algorithm, keyLength);
 }
 
-void PdfMemDocument::SetEncrypted(const PdfEncrypt& encrypt)
+void PdfMemDocument::SetEncrypt(unique_ptr<PdfEncrypt>&& encrypt)
 {
-    m_Encrypt = PdfEncrypt::CreatePdfEncrypt(encrypt);
+    m_Encrypt = std::move(encrypt);
 }
 
 void PdfMemDocument::FreeObjectMemory(const PdfReference& ref, bool force)

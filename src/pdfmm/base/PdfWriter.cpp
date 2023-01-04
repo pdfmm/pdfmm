@@ -306,9 +306,11 @@ void PdfWriter::SetEncryptObj(PdfObject& obj)
     m_EncryptObj = &obj;
 }
 
-void PdfWriter::SetEncrypted(const PdfEncrypt& encrypt)
+// CHECK-ME: Should this accept a mutable reference instead,
+// to reflect changes on the source encrypt (see usage on PdfMemDocument)
+void PdfWriter::SetEncrypt(const PdfEncrypt& encrypt)
 {
-    m_Encrypt = PdfEncrypt::CreatePdfEncrypt(encrypt);
+    m_Encrypt = PdfEncrypt::CreateFromEncrypt(encrypt);
 }
 
 void PdfWriter::SetUseXRefStream(bool useXRefStream)

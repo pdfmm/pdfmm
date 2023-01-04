@@ -48,14 +48,14 @@ struct Paths
 
 TEST_CASE("testDefault")
 {
-    auto encrypt = PdfEncrypt::CreatePdfEncrypt(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD);
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD);
     testAuthenticate(*encrypt);
     testEncrypt(*encrypt);
 }
 
 TEST_CASE("testRC4")
 {
-    auto encrypt = PdfEncrypt::CreatePdfEncrypt(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V1,
         PdfKeyLength::L40);
 
@@ -65,7 +65,7 @@ TEST_CASE("testRC4")
 
 TEST_CASE("testRC4v2_40")
 {
-    auto encrypt = PdfEncrypt::CreatePdfEncrypt(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V2,
         PdfKeyLength::L40);
 
@@ -75,7 +75,7 @@ TEST_CASE("testRC4v2_40")
 
 TEST_CASE("testRC4v2_56")
 {
-    auto encrypt = PdfEncrypt::CreatePdfEncrypt(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V2,
         PdfKeyLength::L56);
 
@@ -85,7 +85,7 @@ TEST_CASE("testRC4v2_56")
 
 TEST_CASE("testRC4v2_80")
 {
-    auto encrypt = PdfEncrypt::CreatePdfEncrypt(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V2,
         PdfKeyLength::L80);
 
@@ -95,7 +95,7 @@ TEST_CASE("testRC4v2_80")
 
 TEST_CASE("testRC4v2_96")
 {
-    auto encrypt = PdfEncrypt::CreatePdfEncrypt(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V2,
         PdfKeyLength::L96);
 
@@ -105,7 +105,7 @@ TEST_CASE("testRC4v2_96")
 
 TEST_CASE("testRC4v2_128")
 {
-    auto encrypt = PdfEncrypt::CreatePdfEncrypt(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::RC4V2,
         PdfKeyLength::L128);
 
@@ -115,7 +115,7 @@ TEST_CASE("testRC4v2_128")
 
 TEST_CASE("testAESV2")
 {
-    auto encrypt = PdfEncrypt::CreatePdfEncrypt(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::AESV2,
         PdfKeyLength::L128);
 
@@ -129,7 +129,7 @@ TEST_CASE("testAESV2")
 
 TEST_CASE("testAESV3")
 {
-    auto encrypt = PdfEncrypt::CreatePdfEncrypt(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::AESV3,
         PdfKeyLength::L256);
 
@@ -141,7 +141,7 @@ TEST_CASE("testAESV3")
 
 TEST_CASE("testAESV3R6")
 {
-    auto encrypt = PdfEncrypt::CreatePdfEncrypt(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
         PdfEncryptAlgorithm::AESV3R6,
         PdfKeyLength::L256);
 
@@ -194,7 +194,7 @@ TEST_CASE("testEnableAlgorithms")
 
     try
     {
-        (void)PdfEncrypt::CreatePdfEncrypt(object);
+        (void)PdfEncrypt::CreateFromObject(object);
         REQUIRE(false);
     }
     catch (PdfError& error)

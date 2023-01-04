@@ -633,7 +633,7 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
                 // NOTE: Never add the encryption dictionary to m_Objects
                 // we create a new one, if we need it for writing
                 m_entries[i].Parsed = false;
-                m_Encrypt = PdfEncrypt::CreatePdfEncrypt(*obj);
+                m_Encrypt = PdfEncrypt::CreateFromObject(*obj);
             }
             catch (PdfError& e)
             {
@@ -646,7 +646,7 @@ void PdfParser::ReadObjects(InputStreamDevice& device)
         }
         else if (encrypt->IsDictionary())
         {
-            m_Encrypt = PdfEncrypt::CreatePdfEncrypt(*encrypt);
+            m_Encrypt = PdfEncrypt::CreateFromObject(*encrypt);
         }
         else
         {

@@ -1,4 +1,5 @@
 ## Version 0.10.0
+- PdfEncrypt: Cleaned factory methods
 - Added PdfArray::FindAtAs(), PdfArray::FindAtAsSafe(), PdfArray::TryFindAtAs(),
   PdfArray::GetAtAs(), PdfArray::GetAtAsSafe(), PdfArray::TryGetAtAs()
 - Added PdfDictionary::FindKeyAsSafe() and PdfDictionary::TryFindKeyAs()

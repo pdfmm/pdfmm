@@ -35,7 +35,7 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     // setup encryption
     if (encrypt != nullptr)
     {
-        this->SetEncrypted(*encrypt);
+        this->SetEncrypt(*encrypt);
         encrypt->GenerateEncryptionKey(GetIdentifier());
     }
 

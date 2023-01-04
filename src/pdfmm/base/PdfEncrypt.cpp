@@ -426,7 +426,7 @@ bool PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm algorithm)
 static unsigned char padding[] =
 "\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A";
 
-unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const string_view& userPassword,
+unique_ptr<PdfEncrypt> PdfEncrypt::Create(const string_view& userPassword,
     const string_view& ownerPassword,
     PdfPermissions protection,
     PdfEncryptAlgorithm algorithm,
@@ -451,7 +451,7 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const string_view& userPassw
     }
 }
 
-unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
+unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromObject(const PdfObject& encryptObj)
 {
     if (!encryptObj.GetDictionary().HasKey(PdfName::KeyFilter) ||
         encryptObj.GetDictionary().GetKey(PdfName::KeyFilter)->GetName() != "Standard")
@@ -557,7 +557,7 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
     }
 }
 
-unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt& rhs)
+unique_ptr<PdfEncrypt> PdfEncrypt::CreateFromEncrypt(const PdfEncrypt& rhs)
 {
     switch (rhs.m_Algorithm)
     {

@@ -65,7 +65,7 @@ public:
      *
      *  \param encrypt an encryption object which is used to encrypt the written PDF file
      */
-    void SetEncrypted(const PdfEncrypt& encrypt);
+    void SetEncrypt(const PdfEncrypt& encrypt);
 
 
     /** Add required keys to a trailer object

@@ -41,6 +41,7 @@ either assume UTF-8 and/or checks for used codepoints
   PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt()
 - PdfPainter: Fix PdfPainter::Arc(), PdfPainter::getMultiLineTextAsLines
   Add proper text/graphics state stack check/handling
+- PdfWriter: Check if SetEncrypt() should accept mutable reference instead
 
 ### After 1.0
 - Added version of PdfFont::TryGetSubstituteFont for rendering

@@ -163,7 +163,7 @@ public:
      *
      *  \see PdfEncrypt
      */
-    void SetEncrypted(const std::string& userPassword, const std::string& ownerPassword,
+    void SetEncrypted(const std::string_view& userPassword, const std::string_view& ownerPassword,
         PdfPermissions protection = PdfPermissions::Default,
         PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::AESV2,
         PdfKeyLength keyLength = PdfKeyLength::L40);
@@ -172,7 +172,7 @@ public:
      *
      *  \param encrypt an encryption object that will be owned by PdfMemDocument
      */
-    void SetEncrypted(const PdfEncrypt& encrypt);
+    void SetEncrypt(std::unique_ptr<PdfEncrypt>&& encrypt);
 
     /** Tries to free all memory allocated by the given
      *  PdfObject (variables and streams) and reads

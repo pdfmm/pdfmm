@@ -126,7 +126,7 @@ public:
      *  \see GenerateEncryptionKey with the documentID to generate the real
      *       encryption key using this information
      */
-    static std::unique_ptr<PdfEncrypt> CreatePdfEncrypt(const std::string_view& userPassword,
+    static std::unique_ptr<PdfEncrypt> Create(const std::string_view& userPassword,
         const std::string_view& ownerPassword,
         PdfPermissions protection = PdfPermissions::Default,
         PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::AESV2,
@@ -143,13 +143,13 @@ public:
      *
      *  \see GetEnabledEncryptionAlgorithms
      */
-    static std::unique_ptr<PdfEncrypt> CreatePdfEncrypt(const PdfObject& obj);
+    static std::unique_ptr<PdfEncrypt> CreateFromObject(const PdfObject& obj);
 
     /** Copy constructor
      *
      *  \param rhs another PdfEncrypt object which is copied
      */
-    static std::unique_ptr<PdfEncrypt> CreatePdfEncrypt(const PdfEncrypt& rhs);
+    static std::unique_ptr<PdfEncrypt> CreateFromEncrypt(const PdfEncrypt& rhs);
 
     /**
      * Retrieve the list of encryption algorithms that are used
