@@ -254,12 +254,9 @@ void PdfObject::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
             stream.MoveFrom(*m_Stream);
         }
 
-        // Set length if it is a key
-        auto fileStream = dynamic_cast<PdfStreamedObjectStream*>(m_Stream.get());
-        if (fileStream == nullptr)
+        // Set length if it's not handled by the underlying provider
+        if (!m_Stream->GetProvider().IsLengthHandled())
         {
-            // It's not a PdfFileStream. PdfFileStream handles length internally
-
             size_t length = m_Stream->GetLength();
             if (encrypt.HasEncrypt())
                 length = encrypt.CalculateStreamLength(length);

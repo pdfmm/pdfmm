@@ -452,6 +452,10 @@ PdfObjectOutputStream::~PdfObjectOutputStream()
 
         // Unlock the stream
         m_stream->m_locked = false;
+
+        auto document = m_stream->GetParent().GetDocument();
+        if (document != nullptr)
+            document->GetObjects().BeginAppendStream(*m_stream);
     }
 }
 
@@ -527,6 +531,11 @@ PdfObjectOutputStream& PdfObjectOutputStream::operator=(PdfObjectOutputStream&& 
 }
 
 PdfObjectStreamProvider::~PdfObjectStreamProvider() { }
+
+bool PdfObjectStreamProvider::IsLengthHandled() const
+{
+    return false;
+}
 
 // Strip media filters from regular ones
 PdfFilterList stripMediaFilters(const PdfFilterList& filters, PdfFilterList& mediaFilters)

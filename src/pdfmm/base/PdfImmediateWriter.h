@@ -64,8 +64,8 @@ public:
 private:
     void WriteObject(const PdfObject& obj) override;
     void Finish() override;
-    void BeginAppendStream(const PdfObjectStream& stream) override;
-    void EndAppendStream(const PdfObjectStream& stream) override;
+    void BeginAppendStream(PdfObjectStream& stream) override;
+    void EndAppendStream(PdfObjectStream& stream) override;
     std::unique_ptr<PdfObjectStreamProvider> CreateStream() override;
 
     /** Assume the stream for the last object has

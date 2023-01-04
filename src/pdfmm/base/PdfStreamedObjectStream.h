@@ -58,7 +58,9 @@ public:
 
     void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) override;
 
-    size_t GetLength() override;
+    size_t GetLength() const override;
+
+    bool IsLengthHandled() const override;
 
 private:
     /** Set an encryption object which is used to encrypt
@@ -68,7 +70,7 @@ private:
      */
     void SetEncrypted(PdfEncrypt& encrypt);
 
-    void FinishOutput(size_t initialLength);
+    void FinishOutput();
 
 private:
     OutputStreamDevice* m_Device;

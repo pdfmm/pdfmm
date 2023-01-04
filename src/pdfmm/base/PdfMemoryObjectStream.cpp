@@ -81,7 +81,7 @@ void PdfMemoryObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt
     stream.Flush();
 }
 
-size_t PdfMemoryObjectStream::GetLength()
+size_t PdfMemoryObjectStream::GetLength() const
 {
     return m_buffer.size();
 }

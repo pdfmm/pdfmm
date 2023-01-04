@@ -190,6 +190,8 @@ public:
 
     PdfObjectStream& operator=(PdfObjectStream&& rhs) noexcept;
 
+    const PdfObjectStreamProvider& GetProvider() const { return *m_Provider; }
+
 private:
     /** Write the stream to an output device
      *  \param device write to this outputdevice.
@@ -209,7 +211,7 @@ private:
      */
     void MoveFrom(PdfObjectStream& rhs);
 
-    PdfObjectStreamProvider& GetProvider() const { return *m_Provider; }
+    PdfObjectStreamProvider& GetProvider() { return *m_Provider; }
 
 private:
     void ensureClosed() const;

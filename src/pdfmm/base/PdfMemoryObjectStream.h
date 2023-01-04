@@ -47,7 +47,9 @@ public:
 
     void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) override;
 
-    size_t GetLength() override;
+    size_t GetLength() const override;
+
+    const charbuff& GetBuffer() const { return m_buffer; }
 
  private:
     charbuff m_buffer;
