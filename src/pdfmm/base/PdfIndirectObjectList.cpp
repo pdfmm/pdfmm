@@ -518,6 +518,16 @@ PdfIndirectObjectList::iterator PdfIndirectObjectList::end() const
     return m_Objects.end();
 }
 
+PdfIndirectObjectList::reverse_iterator PdfIndirectObjectList::rbegin() const
+{
+    return m_Objects.rbegin();
+}
+
+PdfIndirectObjectList::reverse_iterator PdfIndirectObjectList::rend() const
+{
+    return m_Objects.rend();
+}
+
 size_t PdfIndirectObjectList::size() const
 {
     return m_Objects.size();

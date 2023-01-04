@@ -49,6 +49,7 @@ public:
     // the begin() and end() methods we wrap from the internal vector.
     // TODO: proper wrapper iterator class.
     using iterator = ObjectList::const_iterator;
+    using reverse_iterator = ObjectList::const_reverse_iterator;
 
     /** Every observer of PdfIndirectObjectList has to implement this interface.
      */
@@ -339,6 +340,10 @@ public:
      *  \returns ending iterator
      */
     iterator end() const;
+
+    reverse_iterator rbegin() const;
+
+    reverse_iterator rend() const;
 
     size_t size() const;
 
