@@ -158,6 +158,9 @@ namespace mm
      */
     std::string_view ColorSpaceToNameRaw(PdfColorSpace colorSpace);
 
+    std::string_view AnnotationTypeToName(PdfAnnotationType type);
+    PdfAnnotationType NameToAnnotationType(const std::string_view& str);
+
     constexpr double DEG2RAD = std::numbers::pi / 180;
     constexpr double RAD2DEG = 180 / std::numbers::pi;
 

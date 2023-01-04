@@ -18,15 +18,12 @@
 using namespace std;
 using namespace mm;
 
-static string_view toString(PdfAnnotationType type);
-static PdfAnnotationType fromString(const string_view& str);
-
 static PdfName GetAppearanceName(PdfAppearanceType appearance);
 
 PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect)
     : PdfDictionaryElement(page.GetDocument(), "Annot"), m_AnnotationType(annotType), m_Page(&page)
 {
-    const PdfName name(toString(annotType));
+    const PdfName name(mm::AnnotationTypeToName(annotType));
 
     if (name.IsNull())
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
@@ -585,136 +582,5 @@ PdfAnnotationType PdfAnnotation::getAnnotationType(const PdfObject& obj)
         return PdfAnnotationType::Unknown;
 
     auto subtype = name->GetString();
-    return fromString(subtype);
-}
-
-string_view toString(PdfAnnotationType type)
-{
-    switch (type)
-    {
-        case PdfAnnotationType::Text:
-            return "Text"sv;
-        case PdfAnnotationType::Link:
-            return "Link"sv;
-        case PdfAnnotationType::FreeText:
-            return "FreeText"sv;
-        case PdfAnnotationType::Line:
-            return "Line"sv;
-        case PdfAnnotationType::Square:
-            return "Square"sv;
-        case PdfAnnotationType::Circle:
-            return "Circle"sv;
-        case PdfAnnotationType::Polygon:
-            return "Polygon"sv;
-        case PdfAnnotationType::PolyLine:
-            return "PolyLine"sv;
-        case PdfAnnotationType::Highlight:
-            return "Highlight"sv;
-        case PdfAnnotationType::Underline:
-            return "Underline"sv;
-        case PdfAnnotationType::Squiggly:
-            return "Squiggly"sv;
-        case PdfAnnotationType::StrikeOut:
-            return "StrikeOut"sv;
-        case PdfAnnotationType::Stamp:
-            return "Stamp"sv;
-        case PdfAnnotationType::Caret:
-            return "Caret"sv;
-        case PdfAnnotationType::Ink:
-            return "Ink"sv;
-        case PdfAnnotationType::Popup:
-            return "Popup"sv;
-        case PdfAnnotationType::FileAttachement:
-            return "FileAttachment"sv;
-        case PdfAnnotationType::Sound:
-            return "Sound"sv;
-        case PdfAnnotationType::Movie:
-            return "Movie"sv;
-        case PdfAnnotationType::Widget:
-            return "Widget"sv;
-        case PdfAnnotationType::Screen:
-            return "Screen"sv;
-        case PdfAnnotationType::PrinterMark:
-            return "PrinterMark"sv;
-        case PdfAnnotationType::TrapNet:
-            return "TrapNet"sv;
-        case PdfAnnotationType::Watermark:
-            return "Watermark"sv;
-        case PdfAnnotationType::Model3D:
-            return "3D"sv;
-        case PdfAnnotationType::RichMedia:
-            return "RichMedia"sv;
-        case PdfAnnotationType::WebMedia:
-            return "WebMedia"sv;
-        case PdfAnnotationType::Redact:
-            return "Redact"sv;
-        case PdfAnnotationType::Projection:
-            return "Projection"sv;
-        default:
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-    }
-}
-
-PdfAnnotationType fromString(const string_view& str)
-{
-    if (str == "Text"sv)
-        return PdfAnnotationType::Text;
-    else if (str == "Link"sv)
-        return PdfAnnotationType::Link;
-    else if (str == "FreeText"sv)
-        return PdfAnnotationType::FreeText;
-    else if (str == "Line"sv)
-        return PdfAnnotationType::Line;
-    else if (str == "Square"sv)
-        return PdfAnnotationType::Square;
-    else if (str == "Circle"sv)
-        return PdfAnnotationType::Circle;
-    else if (str == "Polygon"sv)
-        return PdfAnnotationType::Polygon;
-    else if (str == "PolyLine"sv)
-        return PdfAnnotationType::PolyLine;
-    else if (str == "Highlight"sv)
-        return PdfAnnotationType::Highlight;
-    else if (str == "Underline"sv)
-        return PdfAnnotationType::Underline;
-    else if (str == "Squiggly"sv)
-        return PdfAnnotationType::Squiggly;
-    else if (str == "StrikeOut"sv)
-        return PdfAnnotationType::StrikeOut;
-    else if (str == "Stamp"sv)
-        return PdfAnnotationType::Stamp;
-    else if (str == "Caret"sv)
-        return PdfAnnotationType::Caret;
-    else if (str == "Ink"sv)
-        return PdfAnnotationType::Ink;
-    else if (str == "Popup"sv)
-        return PdfAnnotationType::Popup;
-    else if (str == "FileAttachment"sv)
-        return PdfAnnotationType::FileAttachement;
-    else if (str == "Sound"sv)
-        return PdfAnnotationType::Sound;
-    else if (str == "Movie"sv)
-        return PdfAnnotationType::Movie;
-    else if (str == "Widget"sv)
-        return PdfAnnotationType::Widget;
-    else if (str == "Screen"sv)
-        return PdfAnnotationType::Screen;
-    else if (str == "PrinterMark"sv)
-        return PdfAnnotationType::PrinterMark;
-    else if (str == "TrapNet"sv)
-        return PdfAnnotationType::TrapNet;
-    else if (str == "Watermark"sv)
-        return PdfAnnotationType::Watermark;
-    else if (str == "3D"sv)
-        return PdfAnnotationType::Model3D;
-    else if (str == "RichMedia"sv)
-        return PdfAnnotationType::RichMedia;
-    else if (str == "WebMedia"sv)
-        return PdfAnnotationType::WebMedia;
-    else if (str == "Redact"sv)
-        return PdfAnnotationType::Redact;
-    else if (str == "Projection"sv)
-        return PdfAnnotationType::Projection;
-    else
-        PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
+    return mm::NameToAnnotationType(subtype);
 }
