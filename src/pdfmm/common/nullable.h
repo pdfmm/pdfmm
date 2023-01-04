@@ -141,8 +141,7 @@ namespace COMMON_NAMESPACE
 
         nullable(const nullable& value) = default;
 
-        // NOTE: We dont't do rebinding from other references
-        nullable& operator=(const nullable& value) = delete;
+        nullable& operator=(const nullable& value) = default;
 
         const T& value() const
         {

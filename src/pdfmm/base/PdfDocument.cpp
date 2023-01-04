@@ -66,12 +66,18 @@ PdfDocument::PdfDocument(const PdfDocument& doc) :
 
 PdfDocument::~PdfDocument()
 {
-    this->Clear();
+    // Do nothing, all members will autoclear
 }
 
 void PdfDocument::Clear() 
 {
     m_FontManager.Clear();
+    m_Catalog = nullptr;
+    m_Info = nullptr;
+    m_Pages = nullptr;
+    m_AcroForm = nullptr;
+    m_Outlines = nullptr;
+    m_NameTree = nullptr;
     m_Objects.Clear();
     m_Objects.SetCanReuseObjectNumbers(true);
 }
@@ -326,6 +332,18 @@ void PdfDocument::deletePages(unsigned atIndex, unsigned pageCount)
         this->GetPages().RemovePageAt(atIndex);
 }
 
+PdfInfo& PdfDocument::GetOrCreateInfo()
+{
+    if (m_Info == nullptr)
+    {
+        auto info = &m_Objects.CreateDictionaryObject();
+        m_Info.reset(new PdfInfo(*info));
+        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", *info);
+    }
+
+    return *m_Info;
+}
+
 PdfRect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox)
 {
     unsigned difference = 0;
@@ -540,16 +558,8 @@ void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
     m_Catalog.reset(new PdfCatalog(*catalog));
 
     auto info = m_TrailerObj->GetDictionary().FindKey("Info");
-    if (info == nullptr)
-    {
-        info = &m_Objects.CreateDictionaryObject();
+    if (info != nullptr)
         m_Info.reset(new PdfInfo(*info));
-        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", *info);
-    }
-    else
-    {
-        m_Info.reset(new PdfInfo(*info));
-    }
 }
 
 bool PdfDocument::IsEncrypted() const

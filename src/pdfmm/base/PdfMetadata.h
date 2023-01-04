@@ -108,12 +108,14 @@ namespace mm
         /** Set the trapping state of the document.
          *  \param trapped trapped
          */
-        void SetTrapped(const PdfName& trapped);
+        void SetTrapped(nullable<const PdfName&> trapped);
 
         /** Get the trapping state of the document
          *  \returns the title
          */
-        const PdfName& GetTrapped() const;
+        std::string GetTrapped() const;
+
+        nullable<const PdfName&> GetTrappedRaw() const;
 
         /** Set the PDF Version of the document. Has to be called before Write() to
          *  have an effect.

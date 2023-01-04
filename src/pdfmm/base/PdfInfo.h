@@ -45,7 +45,7 @@ public:
     /** Get the title of the document
      *  \returns the title
      */
-    nullable<PdfString> GetTitle() const;
+    nullable<const PdfString&> GetTitle() const;
 
     /** Set the author of the document.
      *  \param author author
@@ -55,7 +55,7 @@ public:
     /** Get the author of the document
      *  \returns the author
      */
-    nullable<PdfString> GetAuthor() const;
+    nullable<const PdfString&> GetAuthor() const;
 
     /** Set the subject of the document.
      *  \param subject subject
@@ -65,7 +65,7 @@ public:
     /** Get the subject of the document
      *  \returns the subject
      */
-    nullable<PdfString> GetSubject() const;
+    nullable<const PdfString&> GetSubject() const;
 
     /** Set keywords for this document
      *  \param keywords a list of keywords
@@ -75,7 +75,7 @@ public:
     /** Get the keywords of the document
      *  \returns the keywords
      */
-    nullable<PdfString> GetKeywords() const;
+    nullable<const PdfString&> GetKeywords() const;
 
     /** Set the creator of the document.
      *  Typically the name of the application using the library.
@@ -86,7 +86,7 @@ public:
     /** Get the creator of the document
      *  \returns the creator
      */
-    nullable<PdfString> GetCreator() const;
+    nullable<const PdfString&> GetCreator() const;
 
     /** Set the producer of the document.
      *  \param producer producer
@@ -96,7 +96,7 @@ public:
     /** Get the producer of the document
      *  \returns the producer
      */
-    nullable<PdfString> GetProducer() const;
+    nullable<const PdfString&> GetProducer() const;
 
     void SetCreationDate(nullable<PdfDate> date);
 
@@ -115,12 +115,12 @@ public:
     /** Set the trapping state of the document.
      *  \param trapped trapped
      */
-    void SetTrapped(const PdfName& trapped);
+    void SetTrapped(nullable<const PdfName&> trapped);
 
     /** Get the trapping state of the document
      *  \returns the title
      */
-    const PdfName& GetTrapped() const;
+    nullable<const PdfName&> GetTrapped() const;
 
 private:
     /** Add the initial document information to the dictionary.
@@ -133,13 +133,7 @@ private:
      *  \para name the key to fetch from the info dictionary
      *  \return a value from the info dictionary
      */
-    nullable<PdfString> getStringFromInfoDict(const PdfName& name) const;
-
-    /** Get a value from the info dictionary as name
-    *  \para name the key to fetch from the info dictionary
-    *  \return a value from the info dictionary
-    */
-    const PdfName& getNameFromInfoDict(const PdfName& name) const;
+    nullable<const PdfString&> getStringFromInfoDict(const std::string_view& name) const;
 };
 
 };

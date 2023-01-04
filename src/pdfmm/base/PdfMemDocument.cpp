@@ -67,13 +67,6 @@ PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
         m_Encrypt = PdfEncrypt::CreatePdfEncrypt(*encryptObj);
 }
 
-PdfMemDocument::~PdfMemDocument()
-{
-    // NOTE: Don't call PdfMemDocument::Clear() here,
-    // ~PdfDocument() will call its PdfDocument::Clear()
-    clear();
-}
-
 void PdfMemDocument::Clear()
 {
     // Do clear both locally defined variables and inherited ones

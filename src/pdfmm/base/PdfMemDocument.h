@@ -48,8 +48,6 @@ public:
      */
     PdfMemDocument(const PdfMemDocument& rhs);
 
-    ~PdfMemDocument();
-
     /** Load a PdfMemDocument from a file
      *
      *  \param filename filename of the file which is going to be parsed/opened

@@ -25,7 +25,7 @@ void PdfMetadata::SetTitle(nullable<const PdfString&> title, bool syncXMP)
     if (m_metadata.Title == title)
         return;
 
-    m_doc->GetInfo().SetTitle(title);
+    m_doc->GetOrCreateInfo().SetTitle(title);
     if (title == nullptr)
         m_metadata.Title = nullptr;
     else
@@ -47,7 +47,7 @@ void PdfMetadata::SetAuthor(nullable<const PdfString&> author, bool syncXMP)
     if (m_metadata.Author == author)
         return;
 
-    m_doc->GetInfo().SetAuthor(author);
+    m_doc->GetOrCreateInfo().SetAuthor(author);
     if (author == nullptr)
         m_metadata.Author = nullptr;
     else
@@ -70,7 +70,7 @@ void PdfMetadata::SetSubject(nullable<const PdfString&> subject, bool syncXMP)
     if (m_metadata.Subject == subject)
         return;
 
-    m_doc->GetInfo().SetSubject(subject);
+    m_doc->GetOrCreateInfo().SetSubject(subject);
     if (subject == nullptr)
         m_metadata.Subject = nullptr;
     else
@@ -107,7 +107,7 @@ void PdfMetadata::setKeywords(nullable<const PdfString&> keywords, bool syncXMP)
     if (m_metadata.Keywords == keywords)
         return;
 
-    m_doc->GetInfo().SetKeywords(keywords);
+    m_doc->GetOrCreateInfo().SetKeywords(keywords);
     if (keywords == nullptr)
         m_metadata.Keywords = nullptr;
     else
@@ -133,7 +133,7 @@ void PdfMetadata::SetCreator(nullable<const PdfString&> creator, bool syncXMP)
     if (m_metadata.Creator == creator)
         return;
 
-    m_doc->GetInfo().SetCreator(creator);
+    m_doc->GetOrCreateInfo().SetCreator(creator);
     if (creator == nullptr)
         m_metadata.Creator = nullptr;
     else
@@ -156,7 +156,7 @@ void PdfMetadata::SetProducer(nullable<const PdfString&> producer, bool syncXMP)
     if (m_metadata.Producer == producer)
         return;
 
-    m_doc->GetInfo().SetProducer(producer);
+    m_doc->GetOrCreateInfo().SetProducer(producer);
     if (producer == nullptr)
         m_metadata.Producer = nullptr;
     else
@@ -179,7 +179,7 @@ void PdfMetadata::SetCreationDate(nullable<PdfDate> date, bool syncXMP)
     if (m_metadata.CreationDate == date)
         return;
 
-    m_doc->GetInfo().SetCreationDate(date);
+    m_doc->GetOrCreateInfo().SetCreationDate(date);
     m_metadata.CreationDate = date;
     if (syncXMP)
         syncXMPMetadata(false);
@@ -199,7 +199,7 @@ void PdfMetadata::SetModifyDate(nullable<PdfDate> date, bool syncXMP)
     if (m_metadata.ModDate == date)
         return;
 
-    m_doc->GetInfo().SetModDate(date);
+    m_doc->GetOrCreateInfo().SetModDate(date);
     m_metadata.ModDate = date;
     if (syncXMP)
         syncXMPMetadata(false);
@@ -213,14 +213,32 @@ const nullable<PdfDate>& PdfMetadata::GetModifyDate() const
     return m_metadata.ModDate;
 }
 
-void PdfMetadata::SetTrapped(const PdfName& trapped)
+void PdfMetadata::SetTrapped(nullable<const PdfName&> trapped)
 {
-    m_doc->GetInfo().SetTrapped(trapped);
+    m_doc->GetOrCreateInfo().SetTrapped(trapped);
 }
 
-const PdfName& PdfMetadata::GetTrapped() const
+string PdfMetadata::GetTrapped() const
 {
-    return m_doc->GetInfo().GetTrapped();
+    auto info = m_doc->GetInfo();
+    nullable<const PdfName&> trapped;
+    if (info == nullptr
+        || (trapped = info->GetTrapped()) == nullptr
+        || !(*trapped == "True" || *trapped == "False"))
+    {
+        return "Unknown";
+    }
+
+    return trapped->GetString();
+}
+
+nullable<const PdfName&> PdfMetadata::GetTrappedRaw() const
+{
+    auto info = m_doc->GetInfo();
+    if (info == nullptr)
+        return nullptr;
+    else
+        return info->GetTrapped();
 }
 
 void PdfMetadata::SetPdfVersion(PdfVersion version)
@@ -290,8 +308,8 @@ void PdfMetadata::EnsureXMPMetadata()
 
     // NOTE: Found dates without prefix "D:" that
     // won't validate in veraPDF. Let's reset them
-    m_doc->GetInfo().SetCreationDate(m_metadata.CreationDate);
-    m_doc->GetInfo().SetModDate(m_metadata.ModDate);
+    m_doc->GetOrCreateInfo().SetCreationDate(m_metadata.CreationDate);
+    m_doc->GetOrCreateInfo().SetModDate(m_metadata.ModDate);
 }
 
 void PdfMetadata::Invalidate()
@@ -312,15 +330,36 @@ void PdfMetadata::ensureInitialized()
     if (m_initialized)
         return;
 
-    auto& info = m_doc->GetInfo();
-    m_metadata.Title = info.GetTitle();
-    m_metadata.Author = info.GetAuthor();
-    m_metadata.Subject = info.GetSubject();
-    m_metadata.Keywords = info.GetKeywords();
-    m_metadata.Creator = info.GetCreator();
-    m_metadata.Producer = info.GetProducer();
-    m_metadata.CreationDate = info.GetCreationDate();
-    m_metadata.ModDate = info.GetModDate();
+    auto info = m_doc->GetInfo();
+    if (info != nullptr)
+    {
+        auto title = info->GetTitle();
+        if (title != nullptr)
+            m_metadata.Title = *title;
+
+        auto author = info->GetAuthor();
+        if (author != nullptr)
+            m_metadata.Author = *author;
+
+        auto subject = info->GetSubject();
+        if (subject != nullptr)
+            m_metadata.Subject = *subject;
+
+        auto keywords = info->GetKeywords();
+        if (keywords != nullptr)
+            m_metadata.Keywords = *keywords;
+
+        auto creator = info->GetCreator();
+        if (creator != nullptr)
+            m_metadata.Creator = *creator;
+
+        auto producer = info->GetProducer();
+        if (producer != nullptr)
+            m_metadata.Producer = *producer;
+
+        m_metadata.CreationDate = info->GetCreationDate();
+        m_metadata.ModDate = info->GetModDate();
+    }
     auto metadataValue = m_doc->GetCatalog().GetMetadataStreamValue();
     auto xmpMetadata = mm::GetXMPMetadata(metadataValue, m_packet);
     if (m_packet != nullptr)

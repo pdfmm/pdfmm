@@ -233,7 +233,7 @@ public:
      *
      *  \returns the info dictionary
      */
-    const PdfInfo& GetInfo() const { return *m_Info; }
+    const PdfInfo* GetInfo() const { return m_Info.get(); }
 
     PdfMetadata& GetMetadata() { return m_Metadata; }
 
@@ -321,7 +321,7 @@ private:
 private:
     PdfDocument& operator=(const PdfDocument&) = delete;
 
-    PdfInfo& GetInfo() { return *m_Info; }
+    PdfInfo& GetOrCreateInfo();
 
 private:
     PdfIndirectObjectList m_Objects;

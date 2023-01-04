@@ -8,6 +8,7 @@
 - Check accessibility of PdfEncrypt.h classe, check AESV3 namings
 - PdfFilterFactory: Move CreateFilterList somewhere else (PdfFilter), make it private
 - Rename NameToColorSpaceRaw/ColorSpaceToNameRaw to something more consistent?
+- More enum <-> strings functions and make them public
 - Add PdfAnnotation::GetRectRaw, make GetRect() return normalized rotation rect
 - Make PdfObjectStream not flate filter by default in PdfMemDocument?
 - PdfElement: Optimize, keep dictionary/array pointer. Add GetObjectPtr()
@@ -38,7 +39,7 @@ either assume UTF-8 and/or checks for used codepoints
 - Review PdfPage::SetICCProfile()
 - Review PdfPageCollection::AppendDocumentPages(),
   PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt()
-- PdfPainter: Fix PdfPainter::Arc(),  PdfPainter::getMultiLineTextAsLines
+- PdfPainter: Fix PdfPainter::Arc(), PdfPainter::getMultiLineTextAsLines
   Add proper text/graphics state stack check/handling
 
 ### After 1.0
