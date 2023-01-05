@@ -1,4 +1,5 @@
 ### 1.0
+- Restore manuals
 - PdfFontManager: Add font load from file/better debugging
   in lookup (eg. to spot found font with different name)
 - Review all page import functions to check correct working/improve
