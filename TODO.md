@@ -42,6 +42,10 @@ either assume UTF-8 and/or checks for used codepoints
 - PdfPainter: Fix PdfPainter::Arc(), PdfPainter::getMultiLineTextAsLines
   Add proper text/graphics state stack check/handling
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead
+- Add a "on rails" incremental update/sign facilities, so it's more
+  clear that either the same file has to be locked and then updated,
+  or a buffer is copied from the source file
+- Reintroduce other non-unit tests, possibly migrating them into unit ones
 
 ### After 1.0
 - Added version of PdfFont::TryGetSubstituteFont for rendering

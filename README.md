@@ -5,10 +5,11 @@
 3.  [String encoding](#string_encoding_conventions)
 4.  [API Stability](#api_stability)
 5.  [TODO](#todo)
-6.  [Licensing](#licensing)
-7.  [No warranty](#no_warranty)
-8.  [Contributions](#contributions)
-9.  [Authors](#authors)
+6.  [FAQ](#faq)
+7.  [Licensing](#licensing)
+8.  [No warranty](#no_warranty)
+9.  [Contributions](#contributions)
+10.  [Authors](#authors)
 
 ## What is pdfmm?
 
@@ -93,6 +94,61 @@ See [API Stability](https://github.com/pdfmm/pdfmm/wiki/API-Stability) for more 
 There's a [TODO](https://github.com/pdfmm/pdfmm/blob/master/TODO.md) list in the wiki and a list of
 planned [tasks](https://github.com/pdfmm/pdfmm/issues?q=is%3Aissue+is%3Aopen+label%3Aup-for-grabs)
 in the issue tracker.
+
+## FAQ
+
+**Q: `PdfMemDocument::SaveUpdate()` or `mm::SignDocument()` write only a partial
+file: why so and why there's no mechanism to seamlessly handle the incremental
+update as it was in PoDoFo? What should be done to correctly update/sign the
+document?**
+
+**A:** The previous mechanism in PoDoFo required enablement of document for
+incremental updates, which is a decisional step which I believe should be not
+be necessary. Also:
+1. In case of file loaded document it still required to perform the update in
+the same file, and the check was performed on the path of the files being
+operated to, which is unsafe;
+2. In case of buffers worked for one update/signing operation but didn't work
+for following operations.
+
+The idea is to implement a more explicit mehcanism that makes more clear
+and/or enforces the fact that the incremental update must be performed on the
+same file in case of file loaded documents or that underlying buffer will grow
+following subsequent operations in case of buffer loaded documents.
+Before that, as a workardound, a couple of examples showing the correct operation
+to either update or sign a document (file or buffer loaded) are presented.
+Save an update on a file loaded document, by copying the source to another
+destination:
+
+```
+   string inputPath;
+   string outputPath;
+   auto input = std::make_shared<FileStreamDevice>(inputPath);
+   FileStreamDevice output(outputPath);
+   input->CopyTo(output);
+
+   PdfMemDocument doc;
+   doc.LoadFromDevice(output);
+
+   doc.SaveUpdate(output);
+```
+
+Sign a buffer loaded document:
+
+```
+    bufferview inputBuffer;
+    charbuff outputBuffer;
+    auto input = std::make_shared<SpanStreamDevice>(inputBuffer);
+    BufferStreamDevice output(outputBuffer);
+    input->CopyTo(output);
+
+    PdfMemDocument doc;
+    doc.LoadFromDevice(input);
+
+    // Retrieve signature, create the signer, ...
+
+    mm::SignDocument(doc, output, signer, signature);
+```
 
 ## No warranty
 
