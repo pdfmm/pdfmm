@@ -46,8 +46,13 @@ either assume UTF-8 and/or checks for used codepoints
   clear that either the same file has to be locked and then updated,
   or a buffer is copied from the source file
 - Reintroduce other non-unit tests, possibly migrating them into unit ones
+- PdfResources: Improve API
 
 ### After 1.0
+- Add fail safe sign/update mechanism, meaning the stream gets trimmed
+  to initial length if there's a crash. Not so easy, especially since
+  we are now using STL streams and it's not easy to trim files
+  without access to native handle and low level I/O operations
 - Added version of PdfFont::TryGetSubstituteFont for rendering
   (metrics of loaded font override metrics found on /FontFile)
   - Added method to retrieve shared_ptr from PdfObject, PdfFont (and
