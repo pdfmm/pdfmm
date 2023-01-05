@@ -8,7 +8,7 @@
 
 #include <PdfTest.h>
 
-using namespace mm;
+using namespace PoDoFo;
 using namespace std;
 
 void TestEscapedName(const string_view& nameStr, const string_view& expectedEncoded);

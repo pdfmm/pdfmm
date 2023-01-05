@@ -11,7 +11,7 @@
 #include <utfcpp/utf8.h>
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 static void readTestInputFileTo(string& str, const string_view& filepath);
 
@@ -100,7 +100,7 @@ void TestUtils::SaveFramePPM(OutputStream& stream, const void* data,
         }
         case PdfPixelFormat::Unknown:
         default:
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
     stream.Flush();

@@ -1,6 +1,6 @@
-# pdfmm [![build-linux](https://github.com/pdfmm/pdfmm/actions/workflows/build-linux.yml/badge.svg)](https://github.com/pdfmm/pdfmm/actions/workflows/build-linux.yml) [![build-mac](https://github.com/pdfmm/pdfmm/actions/workflows/build-mac.yml/badge.svg)](https://github.com/pdfmm/pdfmm/actions/workflows/build-mac.yml) [![build-win](https://github.com/pdfmm/pdfmm/actions/workflows/build-win.yml/badge.svg)](https://github.com/pdfmm/pdfmm/actions/workflows/build-win.yml)
+# PoDoFo [![build-linux](https://github.com/podofo/podofo/actions/workflows/build-linux.yml/badge.svg)](https://github.com/podofo/podofo/actions/workflows/build-linux.yml) [![build-mac](https://github.com/podofo/podofo/actions/workflows/build-mac.yml/badge.svg)](https://github.com/podofo/podofo/actions/workflows/build-mac.yml) [![build-win](https://github.com/podofo/podofo/actions/workflows/build-win.yml/badge.svg)](https://github.com/podofo/podofo/actions/workflows/build-win.yml)
 
-1.  [What is pdfmm?](#what_is_pdfmm)
+1.  [What is PoDoFo?](#what_is_podofo)
 2.  [Requirements](#requirements)
 3.  [String encoding](#string_encoding_conventions)
 4.  [API Stability](#api_stability)
@@ -11,21 +11,19 @@
 9.  [Contributions](#contributions)
 10.  [Authors](#authors)
 
-## What is pdfmm?
+## What is PoDoFo?
 
-pdfmm is a s a free portable C++ library to work with the PDF file format.
-pdfmm is a derivative work of the [PoDoFo](http://podofo.sourceforge.net/)
-library, from which it forked at [Rev@1999](https://sourceforge.net/p/podofo/code/1999/).
+PoDoFo is a s a free portable C++ library to work with the PDF file format.
 
-pdfmm provides classes to parse a PDF file and modify its content
+PoDoFo provides classes to parse a PDF file and modify its content
 into memory. The changes can be written back to disk easily.
-Besides PDF parsing pdfmm also provides facilities to create your
+Besides PDF parsing PoDoFo also provides facilities to create your
 own PDF files from scratch. It currently does not
 support rendering PDF content.
 
 ## Requirements
 
-To build pdfmm lib you'll need a c++17 compiler,
+To build PoDoFo lib you'll need a c++17 compiler,
 CMake 3.16 and the following libraries:
 
 * freetype2
@@ -38,7 +36,7 @@ CMake 3.16 and the following libraries:
 * libpng (optional)
 * libidn (optional)
 
-For the most polular toolchains, pdfmm requires the following
+For the most polular toolchains, PoDoFo requires the following
 minimum versions:
 
 * msvc++ 14.16 (VS 2017 15.9)
@@ -49,6 +47,7 @@ It is regularly tested with the following IDE/toolchains versions:
 
 * Visual Studio 2017 15.9
 * Visual Studio 2019 16.11
+* Visual Studio 2022 17.3
 * gcc 9.3.1
 * XCode 13.3
 * NDK r23b
@@ -62,7 +61,7 @@ released under the old PoDoFo terms (LGPL 2.0 license or later),
 new files are expected to be licensed under the terms
 of the LGPL 2.1 license, so as a whole the library is
 licensed under this specific license version. See source headers
-for details. The tests and examples which are included in pdfmm are
+for details. The tests and examples which are included in PoDoFo are
 licensed under the GPL 2.0. This may change at a later stage.
 See all the COPYING files in the relevant folders for details.
 
@@ -70,10 +69,10 @@ See all the COPYING files in the relevant folders for details.
 
 There's a playground area in the repository where you can find
 have access to pre-build dependencies for some popular architectures/operating
-systems. Have a look in the [Readme](https://github.com/pdfmm/pdfmm/tree/master/playground) there.
-Also the github workflow [definition](https://github.com/pdfmm/pdfmm/tree/master/.github/workflows)
+systems. Have a look in the [Readme](https://github.com/podofo/podofo/tree/master/playground) there.
+Also the github workflow [definition](https://github.com/podofo/podofo/tree/master/.github/workflows)
 files are very useful as they provide booststrap commands to build
-pdfmm with latest packages from [brew](https://brew.sh/) under mac and `apt-get` under ubuntu.
+PoDoFo with latest packages from [brew](https://brew.sh/) under mac and `apt-get` under ubuntu.
 
 ## String encoding and buffer conventions
 
@@ -85,19 +84,19 @@ instead represent a generic octet buffer.
 
 ## API stability
 
-pdfmm has an unstable API that is the results of an extensive API review of PoDoFo.
+PoDoFo has an unstable API that is the results of an extensive API review of PoDoFo.
 It may converge to a stable API as soon as the review process is completed.
-See [API Stability](https://github.com/pdfmm/pdfmm/wiki/API-Stability) for more details.
+See [API Stability](https://github.com/podofo/podofo/wiki/API-Stability) for more details.
 
 ## TODO
 
-There's a [TODO](https://github.com/pdfmm/pdfmm/blob/master/TODO.md) list in the wiki and a list of
-planned [tasks](https://github.com/pdfmm/pdfmm/issues?q=is%3Aissue+is%3Aopen+label%3Aup-for-grabs)
+There's a [TODO](https://github.com/podofo/podofo/blob/master/TODO.md) list in the wiki and a list of
+planned [tasks](https://github.com/podofo/podofo/issues?q=is%3Aissue+is%3Aopen+label%3Aup-for-grabs)
 in the issue tracker.
 
 ## FAQ
 
-**Q: `PdfMemDocument::SaveUpdate()` or `mm::SignDocument()` write only a partial
+**Q: `PdfMemDocument::SaveUpdate()` or `PoDoFo::SignDocument()` write only a partial
 file: why so and why there's no mechanism to seamlessly handle the incremental
 update as it was in PoDoFo? What should be done to correctly update/sign the
 document?**
@@ -147,41 +146,38 @@ Sign a buffer loaded document:
 
     // Retrieve signature, create the signer, ...
 
-    mm::SignDocument(doc, output, signer, signature);
+    PoDoFo::SignDocument(doc, output, signer, signature);
 ```
 
 ## No warranty
 
-pdfmm may or may not work for your needs and comes with absolutely no warranty.
+PoDoFo may or may not work for your needs and comes with absolutely no warranty.
 Serious bugs, including security flaws, may be fixed at arbitrary
 timeframes, or not fixed at all.
 
 ## Contributions
 
-If you find a bug and know how to fix it, or you want to add a small feature, you're welcome to send a [pull request](https://github.com/pdfmm/pdfmm/pulls),
-providing it follows the [coding style](https://github.com/pdfmm/pdfmm/blob/master/CODING-STYLE.md)
+If you find a bug and know how to fix it, or you want to add a small feature, you're welcome to send a [pull request](https://github.com/podofo/podofo/pulls),
+providing it follows the [coding style](https://github.com/podofo/podofo/blob/master/CODING-STYLE.md)
 of the project. Also, as a minimum requisite, any contribution should be valuable for a multitude of people,
 to avoid it to be only self relevant for the contributor. Other reasons for the rejection, or hold,
 of a pull request may be:
 
-* the change doesn't fit the scope of pdfmm;
+* the change doesn't fit the scope of PoDoFo;
 * the change shows lack of knowledge/mastery of the PDF specification and/or C++ language;
 * the change breaks automatic tests performed by the maintainer;
 * general lack of time in reviewing and merging the change.
 
 If you need to implement a bigger feature or refactor, check first if
-it was already [planned](https://github.com/pdfmm/pdfmm/issues?q=is%3Aissue+is%3Aopen+label%3Afeatured-task)
+it was already [planned](https://github.com/podofo/podofo/issues?q=is%3Aissue+is%3Aopen+label%3Afeatured-task)
 in the issue list. The feature may be up for grabs, meaning that it's open for external contributions.
 Please write in the relevant issue that you started to work on that, to receive some feedback/coordination.
 If it's not, it means that the refactor/feature is planned to be implemented later by the maintainer(s).
-If the feature is not listed in the issues, add it and/or create a [discussion](https://github.com/pdfmm/pdfmm/discussions)
+If the feature is not listed in the issues, add it and/or create a [discussion](https://github.com/podofo/podofo/discussions)
 to receive some feedback and discuss some basic design choices.
 
 ## Authors
 
-pdfmm is currently developed and mantained by
-[Francesco Pretto ](mailto:ceztko@gmail.com).
-pdfmm was forked from the PoDoFo library, which was
-written by Dominik Seichter, Leonard Rosenthol,
-Craig Ringer and others. See the file
-[AUTHORS.md](https://github.com/pdfmm/pdfmm/blob/master/AUTHORS.md) for more details.
+PoDoFo is currently developed and mantained by
+[Francesco Pretto ](mailto:ceztko@gmail.com), together with Dominik Seichter an others. See the file
+[AUTHORS.md](https://github.com/podofo/podofo/blob/master/AUTHORS.md) for more details.

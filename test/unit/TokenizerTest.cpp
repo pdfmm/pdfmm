@@ -9,7 +9,7 @@
 #include <PdfTest.h>
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 static void Test(const string_view& buffer, PdfDataType dataType, string_view expected = { });
 static void TestStream(const string_view& buffer, const char* tokens[]);

@@ -9,23 +9,23 @@
 // some output to the console.
 #include <iostream>
 
-// Now include all pdfmm header files, to have access
-// to all functions of pdfmm and so that you do not have
+// Now include all PoDoFo header files, to have access
+// to all functions of PoDoFo and so that you do not have
 // to care about the order of includes.
 // 
-// You should always use pdfmm.h and not try to include
+// You should always use podofo.h and not try to include
 // the required headers on your own.
-#include <pdfmm/pdfmm.h>
+#include <podofo/podofo.h>
 
-// All pdfmm classes are member of the pdfmm namespace.
+// All PoDoFo classes are member of the PoDoFo namespace.
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 void PrintHelp()
 {
-    std::cout << "This is a example application for the pdfmm PDF library." << std::endl
+    std::cout << "This is a example application for the PoDoFo PDF library." << std::endl
         << "It creates a small PDF file containing the text >Hello World!<" << std::endl
-        << "Please see https://github.com/pdfmm/pdfmm for more information" << std::endl << std::endl;
+        << "Please see https://github.com/podofo/podofo for more information" << std::endl << std::endl;
     std::cout << "Usage:" << std::endl;
     std::cout << "  helloworld [outputfile.pdf]" << std::endl << std::endl;
 }
@@ -40,7 +40,7 @@ void HelloWorld(const string_view& filename)
     PdfPainter painter;
 
     // A PdfFont object is required to draw text on a PdfPage using a PdfPainter.
-    // pdfmm will find the font using fontconfig on your system and embedd truetype
+    // PoDoFo will find the font using fontconfig on your system and embedd truetype
     // fonts automatically in the PDF file.
     PdfFont* font;
 
@@ -87,22 +87,22 @@ void HelloWorld(const string_view& filename)
         // 
         // The position specifies the start of the baseline of the text.
         // 
-        // All coordinates in pdfmm are in PDF units.
+        // All coordinates in PoDoFo are in PDF units.
         painter.DrawText("ABCDEFGHIKLMNOPQRSTVXYZ", 56.69, page.GetRect().GetHeight() - 56.69);
 
         // Add also some non-ASCII characters (Cyrillic alphabet)
         painter.DrawText("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЫЭЮЯ", 56.69, page.GetRect().GetHeight() - 80);
 
-        // Tell pdfmm that the page has been drawn completely.
-        // This required to optimize drawing operations inside in pdfmm
+        // Tell PoDoFo that the page has been drawn completely.
+        // This required to optimize drawing operations inside in PoDoFo
         // and has to be done whenever you are done with drawing a page.
         painter.FinishDrawing();
 
         // Set some additional information on the PDF file.
-        document.GetMetadata().SetCreator(PdfString("examplahelloworld - A pdfmm test application"));
+        document.GetMetadata().SetCreator(PdfString("examplahelloworld - A PoDoFo test application"));
         document.GetMetadata().SetAuthor(PdfString("Dominik Seichter"));
         document.GetMetadata().SetTitle(PdfString("Hello World"));
-        document.GetMetadata().SetSubject(PdfString("Testing the pdfmm PDF Library"));
+        document.GetMetadata().SetSubject(PdfString("Testing the PoDoFo PDF Library"));
         document.GetMetadata().SetKeywords(vector<string>({ "Test", "PDF", "Hello World" }));
 
         // The last step is to close the document.
@@ -110,7 +110,7 @@ void HelloWorld(const string_view& filename)
     }
     catch (PdfError& e)
     {
-        // All pdfmm methods may throw exceptions
+        // All PoDoFo methods may throw exceptions
         // make sure that painter.FinishPage() is called
         // or who will get an assert in its destructor
         try
@@ -138,12 +138,12 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    // All pdfmm functions will throw an exception in case of an error.
+    // All PoDoFo functions will throw an exception in case of an error.
     // 
     // You should catch the exception to either fix it or report
     // back to the user.
     // 
-    // All exceptions pdfmm throws are objects of the class PdfError.
+    // All exceptions PoDoFo throws are objects of the class PdfError.
     // Thats why we simply catch PdfError objects.
     try
     {

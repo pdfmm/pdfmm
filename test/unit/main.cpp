@@ -12,7 +12,7 @@
 #include <PdfTest.h>
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 int main(int argc, char* argv[])
 {

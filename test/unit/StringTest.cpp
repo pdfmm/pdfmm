@@ -9,7 +9,7 @@
 #include <PdfTest.h>
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 static void TestWriteEscapeSequences(const string_view& str, const string_view& expected);
 

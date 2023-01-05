@@ -8,12 +8,12 @@
 
 #include <PdfTest.h>
 
-#include <pdfmm/private/FreetypePrivate.h>
+#include <podofo/private/FreetypePrivate.h>
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
-#ifdef PDFMM_HAVE_FONTCONFIG
+#ifdef PODOFO_HAVE_FONTCONFIG
 
 #include <fontconfig/fontconfig.h>
 
@@ -147,4 +147,4 @@ bool getFontInfo(FcPattern* pFont, string& fontFamily, string& fontPath,
     return false;
 }
 
-#endif // PDFMM_HAVE_FONTCONFIG
+#endif // PODOFO_HAVE_FONTCONFIG

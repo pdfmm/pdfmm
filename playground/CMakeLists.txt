@@ -8,23 +8,23 @@ endif()
 unset(CMAKE_CONFIGURATION_TYPES CACHE) # It will also remove it from GUI
 set(CMAKE_CONFIGURATION_TYPES "${CMAKE_BUILD_TYPE}")
 
-project(pdfmm)
+project(podofo)
 enable_testing() # Needed to enable "make test" from binary dir
 
 # An useful variable to check if we are running from playground
-set(PDFMM_PLAYGROUND TRUE)
+set(PODOFO_PLAYGROUND TRUE)
 
 if ("${ARCH}" STREQUAL "")
     message(FATAL_ERROR "ARCH is not set. Run the boostrap scripts")
 endif()
 
-if ("${PDFMM_DIR}" STREQUAL "")
-    get_filename_component(PDFMM_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
+if ("${PODOFO_DIR}" STREQUAL "")
+    get_filename_component(PODOFO_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 endif()
 
-set(DEPS_PATH "$ENV{PDFMM_DEPS_PATH}")
+set(DEPS_PATH "$ENV{PODOFO_DEPS_PATH}")
 if ("${DEPS_PATH}" STREQUAL "")
-    set(DEPS_PATH "${PDFMM_DIR}/extern/deps/3rdparty")
+    set(DEPS_PATH "${PODOFO_DIR}/extern/deps/3rdparty")
 endif()
 
 if(NOT EXISTS "${DEPS_PATH}")
@@ -39,7 +39,7 @@ if (MSVC)
 endif()
 
 message("ARCHITECTURE: ${ARCH}")
-message("PDFMM_DIR: ${PDFMM_DIR}")
+message("PODOFO_DIR: ${PODOFO_DIR}")
 message("DEPS_PATH: ${DEPS_PATH}")
 
 # Set include folders for find_package()
@@ -93,4 +93,4 @@ else()
     set(Fontconfig_LIBRARY "${DEPS_PATH}/fontconfig/lib/${ARCH}/libfontconfig.a;${DEPS_PATH}/libuuid/lib/${ARCH}/libuuid.a" CACHE FILEPATH "" FORCE)
 endif()
 
-add_subdirectory("${PDFMM_DIR}" "${CMAKE_BINARY_DIR}/pdfmm")
+add_subdirectory("${PODOFO_DIR}" "${CMAKE_BINARY_DIR}/podofo")

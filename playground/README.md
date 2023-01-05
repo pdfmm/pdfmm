@@ -16,7 +16,7 @@ Run it from the command line and then either:
 
  - Run the compilation with `cmake --build build-<arch>-<config>`, for example `cmake --build build-linux-release`;
  - *(Unix)* Run the compilation by entering the build directory and launch the compilation with `make`, for example `cd build-linux-debug && make`;
- - (Windows) Open the visual studio solution, for example `build-win-Debug\pdfmm.sln`.
+ - (Windows) Open the visual studio solution, for example `build-win-Debug\podofo.sln`.
 
 ## Testing
 

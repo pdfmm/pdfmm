@@ -40,7 +40,7 @@
 
 ## Version 0.9.20
 
-- pdfmm is now a C++17 library
+- The project is now a C++17 library
 - Added move semantics for PdfVariant, PdfObject, PdfArray, PdfDictionary
 - Improved XRefStream support, added support in incremental saves
 - Many fixes in save incremental object/generation number incrementing
@@ -51,7 +51,7 @@
 - Added a PdfDynamicEncoding class that creates a custom CID encoding
   based on actual used glyphs used
 - Automatic creation of CIDMap and /ToUnicode
-- Added PdfSigner class and mm::SignDocument()
+- Added PdfSigner class and SignDocument()
 - Added PdfFontType1Encoding, which support Type1 implicit encoding
 - Added support for PDF 2.0 UTF-8 strings (untested)
 - Added indirect iteration for PdfArray/PdfDictionary (see GetIndirectIterator methods)

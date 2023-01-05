@@ -9,7 +9,7 @@
 #include <PdfTest.h>
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 /** This class tests the basic integer and other types PoDoFo uses
  *  to make sure they satisfy its requirements for behaviour, size, etc.

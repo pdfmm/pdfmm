@@ -25,7 +25,7 @@
 #include <PdfTest.h>
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 static string generateXRefEntries(size_t count);
 static bool canOutOfMemoryKillUnitTests();
@@ -37,7 +37,7 @@ static size_t getStackOverflowDepth();
 // on 64-bit systems sizeof(PdfParser::TXRefEntry)=24 => max size of m_offsets=16*8,388,607 = 201 MB
 constexpr unsigned maxNumberOfIndirectObjects = 8388607;
 
-namespace mm
+namespace PoDoFo
 {
     class PdfParserTest : public PdfParser
     {

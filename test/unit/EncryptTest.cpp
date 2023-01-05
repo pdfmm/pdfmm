@@ -9,7 +9,7 @@
 #include <PdfTest.h>
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 static void testAuthenticate(PdfEncrypt& encrypt);
 static void testEncrypt(PdfEncrypt& encrypt);
@@ -19,7 +19,7 @@ charbuff s_encBuffer;
 PdfPermissions s_protection;
 
 #define PDF_USER_PASSWORD "user"
-#define PDF_OWNER_PASSWORD "pdfmm"
+#define PDF_OWNER_PASSWORD "podofo"
 
 struct Paths
 {
@@ -125,7 +125,7 @@ TEST_CASE("testAESV2")
     //TestEncrypt(encrypt);
 }
 
-#ifdef PDFMM_HAVE_LIBIDN
+#ifdef PODOFO_HAVE_LIBIDN
 
 TEST_CASE("testAESV3")
 {
@@ -151,7 +151,7 @@ TEST_CASE("testAESV3R6")
     //TestEncrypt(encrypt);
 }
 
-#endif // PDFMM_HAVE_LIBIDN
+#endif // PODOFO_HAVE_LIBIDN
 
 TEST_CASE("testEnableAlgorithms")
 {
@@ -161,16 +161,16 @@ TEST_CASE("testEnableAlgorithms")
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V1));
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V2));
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV2));
-#ifdef PDFMM_HAVE_LIBIDN
+#ifdef PODOFO_HAVE_LIBIDN
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3));
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3R6));
-#endif // PDFMM_HAVE_LIBIDN
+#endif // PODOFO_HAVE_LIBIDN
 
     PdfEncryptAlgorithm testAlgorithms = PdfEncryptAlgorithm::AESV2;
     testAlgorithms |= PdfEncryptAlgorithm::RC4V1 | PdfEncryptAlgorithm::RC4V2;
-#ifdef PDFMM_HAVE_LIBIDN
+#ifdef PODOFO_HAVE_LIBIDN
     testAlgorithms |= PdfEncryptAlgorithm::AESV3 | PdfEncryptAlgorithm::AESV3R6;;
-#endif // PDFMM_HAVE_LIBIDN
+#endif // PODOFO_HAVE_LIBIDN
     REQUIRE(testAlgorithms == PdfEncrypt::GetEnabledEncryptionAlgorithms());
 
     // Disable AES

@@ -8,15 +8,15 @@ include_directories(
 )
 
 # repeat for each test
-add_executable(pdfmm-unit ${SOURCE_FILES})
-target_link_libraries(pdfmm-unit
-    pdfmm_test
-    ${PDFMM_LIBRARIES}
-    pdfmm_private
-    ${PDFMM_LIB_DEPENDS}
+add_executable(podofo-unit ${SOURCE_FILES})
+target_link_libraries(podofo-unit
+    podofo_test
+    ${PODOFO_LIBRARIES}
+    podofo_private
+    ${PODOFO_LIB_DEPENDS}
 )
-add_compile_options(${PDFMM_CFLAGS})
+add_compile_options(${PODOFO_CFLAGS})
 
 include(CTest)
 include(Catch)
-catch_discover_tests(pdfmm-unit)
+catch_discover_tests(podofo-unit)

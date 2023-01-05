@@ -7,10 +7,10 @@
 
 #include <PdfTest.h>
 
-#include <pdfmm/private/XMPUtils.h>
+#include <podofo/private/XMPUtils.h>
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 static void TestNormalizeXMP(string_view filename)
 {
@@ -18,7 +18,7 @@ static void TestNormalizeXMP(string_view filename)
     TestUtils::ReadTestInputFileTo(sourceXmp, string(filename) + ".xml");
 
     unique_ptr<PdfXMPPacket> packet;
-    auto metadata = mm::GetXMPMetadata(sourceXmp, packet);
+    auto metadata = PoDoFo::GetXMPMetadata(sourceXmp, packet);
     auto normalizedXmp = packet->ToString();
 
     string expectedXmp;

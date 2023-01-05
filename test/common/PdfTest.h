@@ -13,9 +13,9 @@
 
 #include <PdfTestConfig.h>
 
-#define PDFMM_UNIT_TEST(classname) friend class classname
-#include <pdfmm/private/PdfDeclarationsPrivate.h>
-#include <pdfmm/pdfmm.h>
+#define PODOFO_UNIT_TEST(classname) friend class classname
+#include <podofo/private/PdfDeclarationsPrivate.h>
+#include <podofo/podofo.h>
 
 #include <sstream>
 #include <filesystem>
@@ -67,7 +67,7 @@
 
 #define ASSERT_EQUAL(expected, actual) TestUtils::AssertEqual(expected, actual)
 
-namespace mm
+namespace PoDoFo
 {
     namespace fs = std::filesystem;
 

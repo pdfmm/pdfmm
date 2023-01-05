@@ -12,7 +12,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 static void outofRangeHelper(PdfEncoding& encoding);
 

@@ -11,7 +11,7 @@
 #include <date/date.h>
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 static void deconstruct(const PdfDate& date, short& y, unsigned char& m, unsigned char& d,
     unsigned char& h, unsigned char& M, unsigned char& s);

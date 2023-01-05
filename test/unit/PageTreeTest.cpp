@@ -11,7 +11,7 @@
 constexpr const char* TEST_PAGE_KEY = "TestPageNumber";
 constexpr unsigned TEST_NUM_PAGES = 100;
 
-namespace mm
+namespace PoDoFo
 {
     class PdfPageTest
     {
@@ -22,7 +22,7 @@ namespace mm
 }
 
 using namespace std;
-using namespace mm;
+using namespace PoDoFo;
 
 static void appendChildNode(PdfObject& parent, PdfObject& child);
 static bool isPageNumber(PdfPage& page, unsigned number);
