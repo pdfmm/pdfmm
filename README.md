@@ -54,16 +54,8 @@ It is regularly tested with the following IDE/toolchains versions:
 
 ## Licensing
 
-Short version: LGPL 2.1.
-
-Long version: while several source code files are still
-released under the old PoDoFo terms (LGPL 2.0 license or later),
-new files are expected to be licensed under the terms
-of the LGPL 2.1 license, so as a whole the library is
-licensed under this specific license version. See source headers
-for details. The tests and examples which are included in PoDoFo are
-licensed under the GPL 2.0. This may change at a later stage.
-See all the COPYING files in the relevant folders for details.
+PoDoFo library is licensed under the [LGPL 2.0](https://spdx.org/licenses/LGPL-2.0-or-later.html) or later terms.
+PoDoFo tools are licensed under the [GPL 2.0](https://spdx.org/licenses/GPL-2.0-or-later.html) or later terms.
 
 ## Development quickstart
 
