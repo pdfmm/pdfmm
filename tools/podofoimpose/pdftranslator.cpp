@@ -156,7 +156,7 @@ PdfObject* PdfTranslator::migrateResource(PdfObject* obj)
     PdfObject* ret = nullptr;
 
     if (!obj)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "migrateResource called"
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "migrateResource called"
             " with nullptr object");
 
     if (obj->IsDictionary())
@@ -175,7 +175,7 @@ PdfObject* PdfTranslator::migrateResource(PdfObject* obj)
                 ostringstream oss;
                 oss << "Cycle detected: Object with ref " << o->GetIndirectReference().ToString()
                     << " is already pending migration to the target.\n";
-                mm::LogMessage(PdfLogSeverity::Warning, oss.str());
+                PoDoFo::LogMessage(PdfLogSeverity::Warning, oss.str());
                 continue;
             }
             PdfObject* migrated = migrateResource(o);
@@ -224,7 +224,7 @@ PdfObject* PdfTranslator::migrateResource(PdfObject* obj)
             ostringstream oss;
             oss << "Referenced object " << obj->GetReference().ToString()
                 << " already migrated." << endl;
-            mm::LogMessage(PdfLogSeverity::Debug, oss.str());
+            PoDoFo::LogMessage(PdfLogSeverity::Debug, oss.str());
 
             const PdfObject* const found = migrateMap[obj->GetReference().ToString()];
             return new PdfObject(found->GetIndirectReference());
@@ -239,7 +239,7 @@ PdfObject* PdfTranslator::migrateResource(PdfObject* obj)
             ostringstream oss;
             oss << "Cycle detected: Object with ref " << obj->GetReference().ToString()
                 << " is already pending migration to the target.\n";
-            mm::LogMessage(PdfLogSeverity::Warning, oss.str());
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, oss.str());
             return nullptr; // skip this migration
         }
         PdfObject* o(migrateResource(to_migrate));
@@ -574,7 +574,7 @@ void PdfTranslator::impose()
         }
 
         if (!newpage)
-            PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+            PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
         string bufStr = buffer.str();
         newpage->GetOrCreateContents().GetStreamForAppending().SetData(bufStr);

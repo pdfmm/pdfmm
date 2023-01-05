@@ -20,8 +20,8 @@ add_executable(podofocolor ${color_srcs})
 target_link_libraries(podofocolor 
   ${PODOFO_LIBRARIES}
   ${color_extra_libs}
-  pdfmm_private
-  ${PDFMM_LIB_DEPENDS}
+  podofo_private
+  ${PODOFO_LIB_DEPENDS}
 )
 
 install(TARGETS podofocolor RUNTIME DESTINATION "bin")

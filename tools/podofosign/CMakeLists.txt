@@ -8,7 +8,7 @@ endif()
 
 target_link_libraries(podofosign
 	${PODOFO_LIBRARIES}
-	pdfmm_private
+	podofo_private
     ${OPENSSL_CRYPTO_LIBRARIES}
     ${PLATFORM_LIBRARIES}
 )

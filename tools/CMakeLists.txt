@@ -1,8 +1,4 @@
-# REMOVE-ME: When and if pdfmm is merged back into PoDoFo
-set(PODOFO_LIBRARIES ${PDFMM_LIBRARIES})
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-if (PDFMM_ENABLE_TOOLS)
+if (PODOFO_ENABLE_TOOLS)
     message(WARNING "PoDoFo tools are enabled: tools are currently untested and unsupported")
 else()
     return()

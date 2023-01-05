@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
                     algorithm = PdfEncryptAlgorithm::AESV2;
 #ifdef PODOFO_HAVE_LIBIDN
                 else if (strcmp(argv[i], "--aesv3") == 0)
-                    eAlgorithm = PdfEncryptAlgorithm::AESV3;
+                    algorithm = PdfEncryptAlgorithm::AESV3;
 #endif // PODOFO_HAVE_LIBIDN
                 else if (strcmp(argv[i], "-u") == 0)
                 {

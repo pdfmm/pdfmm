@@ -186,13 +186,13 @@ void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
 
                 case eKeyword_SelectColorSpace_Stroking:
                     colorSpace = this->GetColorSpaceForName(args.back().GetName(), page);
-                    colorSpace = mm::NameToColorSpaceRaw(args.back().GetName());
+                    colorSpace = PoDoFo::NameToColorSpaceRaw(args.back().GetName());
                     args.pop_back();
                     graphicsStack.SetStrokingColorSpace(colorSpace);
                     break;
 
                 case eKeyword_SelectColorSpace_NonStroking:
-                    colorSpace = mm::NameToColorSpaceRaw(args.back().GetName());
+                    colorSpace = PoDoFo::NameToColorSpaceRaw(args.back().GetName());
                     args.pop_back();
                     graphicsStack.SetNonStrokingColorSpace(colorSpace);
                     break;
@@ -237,19 +237,19 @@ void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
 
                         case PdfColorSpace::Separation:
                         {
-                            mm::LogMessage(PdfLogSeverity::Error, "Separation color space not supported.\n");
+                            PoDoFo::LogMessage(PdfLogSeverity::Error, "Separation color space not supported.\n");
                             PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                             break;
                         }
                         case PdfColorSpace::Lab:
                         {
-                            mm::LogMessage(PdfLogSeverity::Error, "CieLab color space not supported.\n");
+                            PoDoFo::LogMessage(PdfLogSeverity::Error, "CieLab color space not supported.\n");
                             PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                             break;
                         }
                         case PdfColorSpace::Indexed:
                         {
-                            mm::LogMessage(PdfLogSeverity::Error, "Indexed color space not supported.\n");
+                            PoDoFo::LogMessage(PdfLogSeverity::Error, "Indexed color space not supported.\n");
                             PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                             break;
                         }
@@ -300,8 +300,8 @@ void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
 
                         default:
                         {
-                            mm::LogMessage(PdfLogSeverity::Error, "Unknown color space {} type.\n",
-                                mm::ColorSpaceToNameRaw(graphicsStack.GetNonStrokingColorSpace()));
+                            PoDoFo::LogMessage(PdfLogSeverity::Error, "Unknown color space {} type.\n",
+                                PoDoFo::ColorSpaceToNameRaw(graphicsStack.GetNonStrokingColorSpace()));
                             PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                         }
                     }
@@ -545,7 +545,7 @@ const char* ColorChanger::GetKeywordForColor(const PdfColor& rColor, bool bIsStr
 
 PdfColorSpace ColorChanger::GetColorSpaceForName(const PdfName& name, PdfCanvas& page)
 {
-    PdfColorSpace colorSpace = mm::NameToColorSpaceRaw(name);
+    PdfColorSpace colorSpace = PoDoFo::NameToColorSpaceRaw(name);
 
     if (colorSpace == PdfColorSpace::Unknown)
     {

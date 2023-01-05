@@ -51,5 +51,5 @@ bool ColorSpace::IsSimpleColorSpace() const
 
 PdfColorSpace ColorSpace::ConvertToPdfColorSpace() const
 {
-    return mm::NameToColorSpaceRaw(m_name);
+    return PoDoFo::NameToColorSpaceRaw(m_name);
 }

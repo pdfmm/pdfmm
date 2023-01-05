@@ -19,7 +19,7 @@ endif()
 add_executable(podofoimpose ${SOURCE_FILES})
 target_link_libraries(podofoimpose
 	${PODOFO_LIBRARIES}
-	pdfmm_private
+	podofo_private
 	${IMPOSE_EXTRA_LIBS}
 )
 install(TARGETS podofoimpose RUNTIME DESTINATION "bin")
