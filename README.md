@@ -1,5 +1,8 @@
 # pdfmm [![build-linux](https://github.com/pdfmm/pdfmm/actions/workflows/build-linux.yml/badge.svg)](https://github.com/pdfmm/pdfmm/actions/workflows/build-linux.yml) [![build-mac](https://github.com/pdfmm/pdfmm/actions/workflows/build-mac.yml/badge.svg)](https://github.com/pdfmm/pdfmm/actions/workflows/build-mac.yml) [![build-win](https://github.com/pdfmm/pdfmm/actions/workflows/build-win.yml/badge.svg)](https://github.com/pdfmm/pdfmm/actions/workflows/build-win.yml)
 
+> **Warning**
+> This project has been moved back to [PoDoFo](https://github.com/podofo/podofo) community. See you there
+
 1.  [What is pdfmm?](#what_is_pdfmm)
 2.  [Requirements](#requirements)
 3.  [String encoding](#string_encoding_conventions)
