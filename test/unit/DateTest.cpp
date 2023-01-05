@@ -118,6 +118,7 @@ TEST_CASE("testAdditional")
 
 TEST_CASE("testParseDateValid")
 {
+    // (Sun Feb 05 2012 13:24:56 GMT+0000)
     auto date = PdfDate::Parse("D:20120205132456");
 
     short y; unsigned char m, d, h, M, s;
@@ -129,6 +130,18 @@ TEST_CASE("testParseDateValid")
     INFO("Hour"); REQUIRE(h == 13);
     INFO("Minute"); REQUIRE(M == 24);
     INFO("Second"); REQUIRE(s == 56);
+
+    unsigned timeExpected = 1328448296;
+    REQUIRE(date.GetSecondsFromEpoch().count() == timeExpected);
+
+    PdfDate date2 = PdfDate::Parse("D:20120205192456+06'00'");
+    REQUIRE(date2.GetSecondsFromEpoch().count() == timeExpected);
+
+    PdfDate date3 = PdfDate::Parse("D:20120205072456-06'00'");
+    REQUIRE(date3.GetSecondsFromEpoch().count() == timeExpected);
+
+    PdfDate date4 = PdfDate::Parse("D:20120205175456+04'30'");
+    REQUIRE(date4.GetSecondsFromEpoch().count() == timeExpected);
 }
 
 
