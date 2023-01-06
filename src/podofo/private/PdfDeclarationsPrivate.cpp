@@ -1010,7 +1010,7 @@ void utls::ByteSwap(u16string& str)
 
 // TODO: Substitute this function using Chromium numerics,
 // which is now included in the code (see 3rdparty/numerics)
-https://chromium.googlesource.com/chromium/src/base/+/master/numerics/
+// https://chromium.googlesource.com/chromium/src/base/+/master/numerics/
 bool utls::DoesMultiplicationOverflow(size_t op1, size_t op2)
 {
     // This overflow check is from OpenBSD reallocarray.c,

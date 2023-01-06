@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(podofo)
+project(PoDoFo)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.1)
