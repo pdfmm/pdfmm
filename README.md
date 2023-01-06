@@ -112,16 +112,16 @@ Save an update on a file loaded document, by copying the source to another
 destination:
 
 ```
-   string inputPath;
-   string outputPath;
-   auto input = std::make_shared<FileStreamDevice>(inputPath);
-   FileStreamDevice output(outputPath);
-   input->CopyTo(output);
+    string inputPath;
+    string outputPath;
+    auto input = std::make_shared<FileStreamDevice>(inputPath);
+    FileStreamDevice output(outputPath, FileMode::Create);
+    input->CopyTo(output);
 
-   PdfMemDocument doc;
-   doc.LoadFromDevice(output);
+    PdfMemDocument doc;
+    doc.LoadFromDevice(input);
 
-   doc.SaveUpdate(output);
+    doc.SaveUpdate(output);
 ```
 
 Sign a buffer loaded document:
