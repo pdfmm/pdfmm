@@ -7,7 +7,8 @@
 - `examples`: Samples that use the PoDoFo API;
 - `extern`: external git submodules needed to compile PoDoFo (no one is currently needed);
 - `src`: the main source directory;
-- `test`: test suite.
+- `test`: test suite;
+- `tools`: the PoDoFo tools suite.
 
 ### Source directory
 The `src` directory contains only a single `podofo` folder.
@@ -16,6 +17,8 @@ externally of the source tree, simulating the layout of prefixed
 `include` after installation. The content of `podofo` is:
 
 - `base`: base source directory with most of the library classes;
-- `compat`: directory with compatibility headers needed to use/compile PoDoFo;
-- `contrib`: directory with more PoDoFo API classes supplied by external contributors;
+- `common`: directory with common general purpose headers that
+  are deployed as part of the public API;
+- `contrib`: directory with more PoDoFo API classes supplied
+    by external contributors, or with unclear ownerships;
 - `private`: directory with private headers/data needed to compile PoDoFo.
