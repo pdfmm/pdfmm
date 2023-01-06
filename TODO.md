@@ -48,6 +48,8 @@ either assume UTF-8 and/or checks for used codepoints
   or a buffer is copied from the source file
 - Reintroduce other non-unit tests, possibly migrating them into unit ones
 - PdfResources: Improve API
+- Do more overflow cheks using Chromium numerics, which is now
+  bundled. See comments in utls::DoesMultiplicationOverflow()
 
 ### After 1.0
 - Add high-level signing API (supporting new signing standard PAdES B-B)

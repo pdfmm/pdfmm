@@ -2,14 +2,16 @@
 
 1.  [What is PoDoFo?](#what_is_podofo)
 2.  [Requirements](#requirements)
-3.  [String encoding](#string_encoding_conventions)
-4.  [API Stability](#api_stability)
-5.  [TODO](#todo)
-6.  [FAQ](#faq)
-7.  [Licensing](#licensing)
-8.  [No warranty](#no_warranty)
-9.  [Contributions](#contributions)
-10.  [Authors](#authors)
+3.  [Licensing](#licensing)
+4.  [Development quickstart](#development_quickstart)
+5.  [String encoding and buffer conventions](#string_encoding_and_buffer_conventions)
+6.  [API Stability](#api_stability)
+7.  [PoDoFo tools](#podofo_tools)
+8.  [TODO](#todo)
+9.  [FAQ](#faq)
+10.  [No warranty](#no_warranty)
+11.  [Contributions](#contributions)
+12.  [Authors](#authors)
 
 ## What is PoDoFo?
 
@@ -80,11 +82,13 @@ PoDoFo has an unstable API that is the results of an extensive API review of PoD
 It is expected to converge to a stable API as soon as the review process is completed.
 See [API Stability](https://github.com/podofo/podofo/wiki/API-Stability) for more details.
 
-## Tools
+## PoDoFo Tools
 
 PoDoFo tools are still available in the source [tree](https://github.com/podofo/podofo/)
 but are currently untested and unmaintained. It's currently not recommended
-to include them in software distributions.
+to include them in software distributions. If you want to build them make sure
+to bootstrap the CMake project with ```-DPODOFO_ENABLE_TOOLS=TRUE```.
+Tools are already enabled in the playground.
 
 ## TODO
 
@@ -180,4 +184,5 @@ to receive some feedback and discuss some basic design choices.
 PoDoFo is currently developed and mantained by
 [Francesco Pretto](mailto:ceztko@gmail.com), together Dominik Seichter an others. See the file
 [AUTHORS.md](https://github.com/podofo/podofo/blob/master/AUTHORS.md) for more details.
-Please don't use personal emails for support requests, but create an [issue](https://github.com/podofo/podofo/issues) instead.
+Please don't use personal emails for technical support requests, but create
+a github [issue](https://github.com/podofo/podofo/issues) instead.
