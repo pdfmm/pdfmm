@@ -76,15 +76,20 @@ instead represent a generic octet buffer.
 
 ## API stability
 
-PoDoFo has an unstable API that is the results of an extensive API review of PoDoFo.
-It may converge to a stable API as soon as the review process is completed.
+PoDoFo has an unstable API that is the results of an extensive API review of PoDoFo 0.9.x.
+It is expected to converge to a stable API as soon as the review process is completed.
 See [API Stability](https://github.com/podofo/podofo/wiki/API-Stability) for more details.
+
+## Tools
+
+PoDoFo tools are still available in the source [tree](https://github.com/podofo/podofo/)
+but are currently untested and unmaintained. It's currently not recommended
+to include them in software distributions.
 
 ## TODO
 
-There's a [TODO](https://github.com/podofo/podofo/blob/master/TODO.md) list in the wiki and a list of
-planned [tasks](https://github.com/podofo/podofo/issues?q=is%3Aissue+is%3Aopen+label%3Aup-for-grabs)
-in the issue tracker.
+There's a [TODO](https://github.com/podofo/podofo/blob/master/TODO.md) list in the wiki.
+in the [issue](https://github.com/podofo/podofo/issues) tracker.
 
 ## FAQ
 
@@ -149,6 +154,9 @@ timeframes, or not fixed at all.
 
 ## Contributions
 
+Please subscribe to the project mailing [list](https://sourceforge.net/projects/podofo/lists/podofo-users)
+which is still followed by several of the original developers of PoDoFO.
+A gitter [community](https://gitter.im/podofo/community) has also been created to ease some more informal chatter.
 If you find a bug and know how to fix it, or you want to add a small feature, you're welcome to send a [pull request](https://github.com/podofo/podofo/pulls),
 providing it follows the [coding style](https://github.com/podofo/podofo/blob/master/CODING-STYLE.md)
 of the project. Also, as a minimum requisite, any contribution should be valuable for a multitude of people,
@@ -160,9 +168,8 @@ of a pull request may be:
 * the change breaks automatic tests performed by the maintainer;
 * general lack of time in reviewing and merging the change.
 
-If you need to implement a bigger feature or refactor, check first if
-it was already [planned](https://github.com/podofo/podofo/issues?q=is%3Aissue+is%3Aopen+label%3Afeatured-task)
-in the issue list. The feature may be up for grabs, meaning that it's open for external contributions.
+If you need to implement a bigger feature or refactor, ask first if
+it was already planned. The feature may be up for grabs, meaning that it's open for external contributions.
 Please write in the relevant issue that you started to work on that, to receive some feedback/coordination.
 If it's not, it means that the refactor/feature is planned to be implemented later by the maintainer(s).
 If the feature is not listed in the issues, add it and/or create a [discussion](https://github.com/podofo/podofo/discussions)
@@ -171,5 +178,6 @@ to receive some feedback and discuss some basic design choices.
 ## Authors
 
 PoDoFo is currently developed and mantained by
-[Francesco Pretto ](mailto:ceztko@gmail.com), together with Dominik Seichter an others. See the file
+[Francesco Pretto](mailto:ceztko@gmail.com), together Dominik Seichter an others. See the file
 [AUTHORS.md](https://github.com/podofo/podofo/blob/master/AUTHORS.md) for more details.
+Please don't use personal emails for support requests, but create an [issue](https://github.com/podofo/podofo/issues) instead.
