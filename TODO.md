@@ -50,6 +50,7 @@ either assume UTF-8 and/or checks for used codepoints
 - PdfResources: Improve API
 
 ### After 1.0
+- Add high-level signing API (supporting new signing standard PAdES B-B)
 - Add fail safe sign/update mechanism, meaning the stream gets trimmed
   to initial length if there's a crash. Not so easy, especially since
   we are now using STL streams and it's not easy to trim files
